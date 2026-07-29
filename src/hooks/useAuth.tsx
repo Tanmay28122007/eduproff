@@ -96,6 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) return { error };
 
+      if (data.user) {
+        setUser(data.user);
+        setSession(data.session);
         localStorage.setItem(`eduproof_cached_role_${data.user.id}`, selectedRole);
 
         // Create profile document in Supabase
@@ -111,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         setRole(selectedRole);
+      }
 
       return { error: null };
     } catch (error: any) {
@@ -128,6 +132,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) return { error };
 
       if (data.user) {
+        setUser(data.user);
+        setSession(data.session);
         const userRole = await fetchUserRole(data.user.id);
         setRole(userRole);
       }

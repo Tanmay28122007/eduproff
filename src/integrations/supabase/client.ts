@@ -494,6 +494,7 @@ const authBridge = {
       const userCred = await createUserWithEmailAndPassword(auth, options.email, options.password);
       const user = mapFirebaseUserToSupabaseUser(userCred.user, options.options?.data);
       const session = mapFirebaseSession(userCred.user, options.options?.data);
+      authListeners.forEach((cb) => cb("SIGNED_IN", session));
       return { data: { user, session }, error: null };
     } catch (err: any) {
       return { data: { user: null, session: null }, error: err };
@@ -505,6 +506,7 @@ const authBridge = {
       const userCred = await signInWithEmailAndPassword(auth, options.email, options.password);
       const user = mapFirebaseUserToSupabaseUser(userCred.user);
       const session = mapFirebaseSession(userCred.user);
+      authListeners.forEach((cb) => cb("SIGNED_IN", session));
       return { data: { user, session }, error: null };
     } catch (err: any) {
       return { data: { user: null, session: null }, error: err };
