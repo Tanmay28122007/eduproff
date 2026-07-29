@@ -1,0 +1,10 @@
+project_id = "wvkdgckgylgadailwnte"
+
+[functions.verify-certificate]
+verify_jwt = false
+
+[functions.public-verify]
+verify_jwt = false
+
+[functions.assign-role]
+verify_jwt = false
