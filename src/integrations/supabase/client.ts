@@ -89,10 +89,10 @@ function mapFirebaseSession(fbUser: FirebaseUser | null, metadata: Record<string
   const user = mapFirebaseUserToSupabaseUser(fbUser, metadata)!;
   return {
     access_token: "firebase-mock-access-token",
-    token_type: "bearer",
+    token_type: "bearer" as const,
     expires_in: 3600,
     refresh_token: "firebase-mock-refresh-token",
-    user,
+    user: user as any,
   };
 }
 
@@ -489,7 +489,7 @@ onAuthStateChanged(auth, (fbUser) => {
 });
 
 const authBridge = {
-  async signUp(options: { email: string; password: string; options?: { data?: Record<string, any> } }) {
+  async signUp(options: { email: string; password: string; options?: { emailRedirectTo?: string; data?: Record<string, any> } }) {
     try {
       const userCred = await createUserWithEmailAndPassword(auth, options.email, options.password);
       const user = mapFirebaseUserToSupabaseUser(userCred.user, options.options?.data);

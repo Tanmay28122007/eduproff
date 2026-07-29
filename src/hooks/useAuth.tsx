@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select("role")
         .eq("user_id", userId)
         .maybeSingle();
-      
+
       const roleVal = (data?.role as UserRole) || null;
       if (roleVal) {
         localStorage.setItem(`eduproof_cached_role_${userId}`, roleVal);
@@ -75,14 +75,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (
-    email: string, 
-    password: string, 
-    fullName: string, 
+    email: string,
+    password: string,
+    fullName: string,
     selectedRole: "candidate" | "recruiter" | "institution" | "admin"
   ) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
-      
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
