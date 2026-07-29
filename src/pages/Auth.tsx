@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Shield, Eye, EyeOff, Loader2, GraduationCap, Building2, Search } from "lucide-react";
 
 type AuthMode = "login" | "signup";
