@@ -218,21 +218,24 @@ class QueryBuilder {
   }
 
   private async fetchDocs(): Promise<DocumentData[]> {
-    const localDocs = getLocalStorageDocs(this.tableName);
-    let docs: DocumentData[] = [...localDocs];
+    let docs: DocumentData[] = getLocalStorageDocs(this.tableName);
 
-    // Asynchronously update from Cloud Firestore in background
-    getDocs(collection(db, this.tableName))
-      .then((snapshot) => {
-        const cloudDocs: DocumentData[] = [];
-        snapshot.forEach((d) => cloudDocs.push({ id: d.id, ...d.data() }));
-        if (cloudDocs.length > 0) {
-          const mergedIds = new Set(cloudDocs.map(d => d.id));
-          localDocs.forEach(ld => { if (!mergedIds.has(ld.id)) cloudDocs.push(ld); });
-          saveLocalStorageDocs(this.tableName, cloudDocs);
-        }
-      })
-      .catch(() => {});
+    try {
+      const colRef = collection(db, this.tableName);
+      const snapshot = await getDocs(colRef);
+      const cloudDocs: DocumentData[] = [];
+      snapshot.forEach((d) => cloudDocs.push({ id: d.id, ...d.data() }));
+
+      if (cloudDocs.length > 0) {
+        const cloudIds = new Set(cloudDocs.map(d => d.id));
+        const localOnly = docs.filter(ld => !cloudIds.has(ld.id));
+        docs = [...cloudDocs, ...localOnly];
+        saveLocalStorageDocs(this.tableName, docs);
+      }
+    } catch (err: any) {
+      console.warn(`[Firestore Bridge] Read fallback for '${this.tableName}':`, err?.message || err);
+      docs = getLocalStorageDocs(this.tableName);
+    }
 
     // Filter by equality & in conditions
     if (this.conditions.length > 0) {
@@ -332,11 +335,9 @@ class QueryBuilder {
 
         const docRecord = { id: docId, ...item, created_at: item.created_at || new Date().toISOString() };
 
-        // Save immediately to local store for 0ms UI responsiveness
         setLocalDoc(this.tableName, docRecord);
         inserted.push(docRecord);
 
-        // Async sync to Cloud Firestore in background
         setDoc(doc(db, this.tableName, docId), docRecord, { merge: true }).catch(() => {});
       }
 
@@ -408,7 +409,6 @@ const storageBridge = {
         const storageKey = `${bucket}/${path}`;
         objectUrlStorageMap.set(storageKey, objectUrl);
 
-        // Upload in background without blocking caller
         uploadBytes(ref(storage, storageKey), file).catch(() => {});
 
         return { data: { path, fullPath: storageKey, publicUrl: objectUrl }, error: null };
