@@ -22,6 +22,15 @@ const objectUrlStorageMap = new Map<string, string>();
 
 const LOCAL_STORE_PREFIX = "eduproof_firestore_";
 
+function fetchWithTimeout<T>(promise: Promise<T>, timeoutMs = 1200): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout waiting for Firestore")), timeoutMs)
+    ),
+  ]);
+}
+
 function getLocalStorageDocs(tableName: string): DocumentData[] {
   try {
     const raw = localStorage.getItem(LOCAL_STORE_PREFIX + tableName);
@@ -222,7 +231,7 @@ class QueryBuilder {
 
     try {
       const colRef = collection(db, this.tableName);
-      const snapshot = await getDocs(colRef);
+      const snapshot = await fetchWithTimeout(getDocs(colRef), 1200);
       const cloudDocs: DocumentData[] = [];
       snapshot.forEach((d) => cloudDocs.push({ id: d.id, ...d.data() }));
 
@@ -233,7 +242,6 @@ class QueryBuilder {
         saveLocalStorageDocs(this.tableName, docs);
       }
     } catch (err: any) {
-      console.warn(`[Firestore Bridge] Read fallback for '${this.tableName}':`, err?.message || err);
       docs = getLocalStorageDocs(this.tableName);
     }
 
