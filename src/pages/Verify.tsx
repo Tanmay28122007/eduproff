@@ -87,72 +87,57 @@ const Verify = () => {
 
     try {
       const code = certificateCode.trim();
+      const fileUrl = URL.createObjectURL(file);
+
+      // Fast check in institutional database
       const { data: issuedData } = await supabase
         .from("issued_certificates")
         .select("*")
         .eq("certificate_id", code)
-        .single();
+        .maybeSingle();
 
-      let verificationResult = {
-        status: "failed",
-        trust_score: 30,
-        message: "Certificate ID not found in institutional database.",
-        course_name: title,
-        student_name: issuer,
-        issue_date: new Date().toISOString()
+      const isVerified = !!issuedData;
+      const verificationResult = {
+        status: isVerified ? "verified" : "failed",
+        trust_score: isVerified ? 100 : 30,
+        message: isVerified
+          ? "Certificate successfully verified against institutional records."
+          : "Certificate ID not found in institutional database.",
+        course_name: issuedData?.course_name || title,
+        student_name: issuedData?.student_name || issuer,
+        issue_date: issuedData?.issue_date || new Date().toISOString()
       };
 
-      if (issuedData) {
-        verificationResult = {
-          status: "verified",
-          trust_score: 100,
-          message: "Certificate successfully verified against institutional records.",
-          course_name: issuedData.course_name || title,
-          student_name: issuedData.student_name || issuer,
-          issue_date: issuedData.issue_date || new Date().toISOString()
-        };
-      }
-
-      // Log verification attempt
-      await supabase.from("verification_logs").insert({
-        certificate_id: code,
-        recruiter_id: user.id,
-        status: verificationResult.status,
-        trust_score: verificationResult.trust_score,
-      });
-
-      const { data: certificate, error } = await addCertificate(
-        verificationResult.course_name || title,
-        verificationResult.student_name || issuer,
-        verificationResult.issue_date
-      );
-      
-      if (error || !certificate) {
-        toast.error(error || "Failed to save certificate");
-        setIsVerifying(false);
-        return;
-      }
-
-      const fileUrl = await uploadCertificateFile(file, certificate.id);
-      if (fileUrl) {
-        await supabase
-          .from("certificates")
-          .update({ certificate_url: fileUrl })
-          .eq("id", certificate.id);
-      }
+      // Execute persistence and storage in parallel without blocking user redirect
+      Promise.all([
+        supabase.from("verification_logs").insert({
+          certificate_id: code,
+          recruiter_id: user.id,
+          status: verificationResult.status,
+          trust_score: verificationResult.trust_score,
+        }),
+        supabase.from("certificates").insert({
+          user_id: user.id,
+          title: verificationResult.course_name,
+          issuer: verificationResult.student_name,
+          issue_date: verificationResult.issue_date,
+          certificate_url: fileUrl,
+          verification_status: verificationResult.status,
+          verification_message: verificationResult.message,
+        }),
+        uploadCertificateFile(file, `cert_${Date.now()}`),
+      ]).catch((e) => console.warn("Background persistence notice:", e));
 
       const resultState = {
         trustScore: verificationResult.trust_score,
         status: verificationResult.status,
         explanation: verificationResult.message,
-        checks: [{ name: "Certificate ID Lookup", passed: verificationResult.status === "verified", score: verificationResult.trust_score, details: verificationResult.message }],
+        checks: [{ name: "Certificate ID Lookup", passed: isVerified, score: verificationResult.trust_score, details: verificationResult.message }],
       };
 
-      if (verificationResult.status === "verified") {
-        await updateCertificateStatus(certificate.id, "verified", verificationResult.message);
+      if (isVerified) {
         navigate("/upload-success", { state: resultState });
       } else {
-        await updateCertificateStatus(certificate.id, "failed", verificationResult.message);
         navigate("/upload-failed", { state: resultState });
       }
     } catch (err) {

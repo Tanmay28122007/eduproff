@@ -43,7 +43,7 @@ function setLocalDoc(tableName: string, docData: DocumentData) {
   if (idx >= 0) {
     docs[idx] = { ...docs[idx], ...docData };
   } else {
-    docs.push(docData);
+    docs.unshift(docData);
   }
   saveLocalStorageDocs(tableName, docs);
 }
@@ -218,27 +218,21 @@ class QueryBuilder {
   }
 
   private async fetchDocs(): Promise<DocumentData[]> {
-    let docs: DocumentData[] = [];
-
-    try {
-      const colRef = collection(db, this.tableName);
-      const snapshot = await getDocs(colRef);
-      snapshot.forEach((d) => {
-        docs.push({ id: d.id, ...d.data() });
-      });
-    } catch (err: any) {
-      console.warn(`[Firestore Bridge] Read permission fallback for '${this.tableName}':`, err?.message || err);
-      docs = getLocalStorageDocs(this.tableName);
-    }
-
-    // Merge with any local storage docs to ensure offline resilience
     const localDocs = getLocalStorageDocs(this.tableName);
-    const existingIds = new Set(docs.map((d) => d.id));
-    for (const ld of localDocs) {
-      if (!existingIds.has(ld.id)) {
-        docs.push(ld);
-      }
-    }
+    let docs: DocumentData[] = [...localDocs];
+
+    // Asynchronously update from Cloud Firestore in background
+    getDocs(collection(db, this.tableName))
+      .then((snapshot) => {
+        const cloudDocs: DocumentData[] = [];
+        snapshot.forEach((d) => cloudDocs.push({ id: d.id, ...d.data() }));
+        if (cloudDocs.length > 0) {
+          const mergedIds = new Set(cloudDocs.map(d => d.id));
+          localDocs.forEach(ld => { if (!mergedIds.has(ld.id)) cloudDocs.push(ld); });
+          saveLocalStorageDocs(this.tableName, cloudDocs);
+        }
+      })
+      .catch(() => {});
 
     // Filter by equality & in conditions
     if (this.conditions.length > 0) {
@@ -338,15 +332,12 @@ class QueryBuilder {
 
         const docRecord = { id: docId, ...item, created_at: item.created_at || new Date().toISOString() };
 
-        try {
-          const docRef = doc(db, this.tableName, docId);
-          await setDoc(docRef, docRecord, { merge: true });
-        } catch (err: any) {
-          console.warn(`[Firestore Bridge] Insert permission fallback for '${this.tableName}':`, err?.message || err);
-        }
-
+        // Save immediately to local store for 0ms UI responsiveness
         setLocalDoc(this.tableName, docRecord);
         inserted.push(docRecord);
+
+        // Async sync to Cloud Firestore in background
+        setDoc(doc(db, this.tableName, docId), docRecord, { merge: true }).catch(() => {});
       }
 
       return { data: Array.isArray(data) ? inserted : inserted[0], error: null };
@@ -366,17 +357,11 @@ class QueryBuilder {
 
       for (const d of docs) {
         const docRecord = { ...d, ...data, updated_at: new Date().toISOString() };
-        try {
-          const docRef = doc(db, this.tableName, d.id);
-          await updateDoc(docRef, { ...data, updated_at: new Date().toISOString() });
-        } catch (err: any) {
-          console.warn(`[Firestore Bridge] Update permission fallback for '${this.tableName}':`, err?.message || err);
-        }
         updated.push(docRecord);
+        updateDoc(doc(db, this.tableName, d.id), { ...data, updated_at: new Date().toISOString() }).catch(() => {});
       }
 
       updateLocalDocs(this.tableName, docs, data);
-
       return { data: updated, error: null };
     };
 
@@ -386,18 +371,10 @@ class QueryBuilder {
   delete() {
     const doDelete = async () => {
       const docs = await this.fetchDocs();
-
       for (const d of docs) {
-        try {
-          const docRef = doc(db, this.tableName, d.id);
-          await deleteDoc(docRef);
-        } catch (err: any) {
-          console.warn(`[Firestore Bridge] Delete permission fallback for '${this.tableName}':`, err?.message || err);
-        }
+        deleteDoc(doc(db, this.tableName, d.id)).catch(() => {});
       }
-
       deleteLocalDocs(this.tableName, docs);
-
       return { data: docs, error: null };
     };
 
@@ -427,22 +404,14 @@ const storageBridge = {
   from(bucket: string) {
     return {
       async upload(path: string, file: File | Blob, _options?: any) {
-        try {
-          const objectUrl = URL.createObjectURL(file);
-          const storageKey = `${bucket}/${path}`;
-          objectUrlStorageMap.set(storageKey, objectUrl);
+        const objectUrl = URL.createObjectURL(file);
+        const storageKey = `${bucket}/${path}`;
+        objectUrlStorageMap.set(storageKey, objectUrl);
 
-          try {
-            const storageRef = ref(storage, storageKey);
-            await uploadBytes(storageRef, file);
-          } catch (storageErr) {
-            console.warn("Firebase Storage upload skipped/failed, using local Object URL fallback:", storageErr);
-          }
+        // Upload in background without blocking caller
+        uploadBytes(ref(storage, storageKey), file).catch(() => {});
 
-          return { data: { path, fullPath: storageKey }, error: null };
-        } catch (err: any) {
-          return { data: null, error: err };
-        }
+        return { data: { path, fullPath: storageKey, publicUrl: objectUrl }, error: null };
       },
       getPublicUrl(path: string) {
         const storageKey = `${bucket}/${path}`;
@@ -469,12 +438,8 @@ const functionsBridge = {
         const { userId, role } = body;
         if (userId && role) {
           const roleRecord = { id: userId, user_id: userId, role, created_at: new Date().toISOString() };
-          try {
-            await setDoc(doc(db, "user_roles", userId), roleRecord);
-          } catch (err) {
-            console.warn("[Firestore Bridge] assign-role permission fallback:", err);
-          }
           setLocalDoc("user_roles", roleRecord);
+          setDoc(doc(db, "user_roles", userId), roleRecord).catch(() => {});
           return { data: { success: true, message: `Role ${role} assigned successfully` }, error: null };
         }
       }
@@ -492,12 +457,8 @@ const functionsBridge = {
           created_at: new Date().toISOString()
         };
 
-        try {
-          await setDoc(doc(db, "verification_logs", logEntry.id), logEntry);
-        } catch (logErr) {
-          console.warn("[Firestore Bridge] Log entry permission fallback:", logErr);
-        }
         setLocalDoc("verification_logs", logEntry);
+        setDoc(doc(db, "verification_logs", logEntry.id), logEntry).catch(() => {});
 
         if (cert) {
           return { data: { valid: true, certificate: cert, message: "Certificate verified successfully" }, error: null };

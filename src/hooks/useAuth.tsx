@@ -26,17 +26,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserRole = async (userId: string): Promise<UserRole> => {
     try {
-      const { data, error } = await supabase
+      const cached = localStorage.getItem(`eduproof_cached_role_${userId}`);
+      if (cached) return cached as UserRole;
+
+      const { data } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
       
-      if (error) {
-        console.error("Error fetching user role:", error);
-        return null;
+      const roleVal = (data?.role as UserRole) || null;
+      if (roleVal) {
+        localStorage.setItem(`eduproof_cached_role_${userId}`, roleVal);
       }
-      return (data?.role as UserRole) || null;
+      return roleVal;
     } catch (error) {
       console.error("Error fetching user role:", error);
       return null;
@@ -93,7 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) return { error };
 
-      if (data.user) {
+        localStorage.setItem(`eduproof_cached_role_${data.user.id}`, selectedRole);
+
         // Create profile document in Supabase
         await supabase.from("profiles").insert({
           user_id: data.user.id,
@@ -106,9 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: selectedRole,
         });
 
-        const userRole = await fetchUserRole(data.user.id);
-        setRole(userRole);
-      }
+        setRole(selectedRole);
 
       return { error: null };
     } catch (error: any) {
