@@ -14,14 +14,9 @@ import {
   addDoc, 
   updateDoc, 
   deleteDoc, 
-  query, 
-  where, 
-  orderBy as fsOrderBy, 
-  limit as fsLimit, 
-  runTransaction,
   DocumentData 
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes } from "firebase/storage";
 import { auth, db, storage } from "../firebase";
 
 // Global map for client-side object URL storage preview
@@ -32,12 +27,14 @@ function mapFirebaseUserToSupabaseUser(fbUser: FirebaseUser | null, metadata: Re
   return {
     id: fbUser.uid,
     email: fbUser.email || "",
+    email_confirmed_at: new Date().toISOString(),
     user_metadata: {
       full_name: fbUser.displayName || metadata.full_name || "",
       ...metadata
     },
     app_metadata: {},
     aud: "authenticated",
+    role: "authenticated",
     created_at: new Date().toISOString(),
   };
 }
@@ -56,17 +53,17 @@ function mapFirebaseSession(fbUser: FirebaseUser | null, metadata: Record<string
 
 class QueryBuilder {
   private tableName: string;
-  private conditions: Array<{ field: string; op: any; val: any }> = [];
+  private conditions: Array<{ field: string; op: string; val: any }> = [];
+  private orConditions: string[] = [];
   private orderConfig: { field: string; direction: "asc" | "desc" } | null = null;
   private limitNum: number | null = null;
-  private selectCols: string | null = null;
+  private rangeConfig: { from: number; to: number } | null = null;
 
   constructor(tableName: string) {
     this.tableName = tableName;
   }
 
-  select(columns: string = "*", _options?: { count?: string; head?: boolean }) {
-    this.selectCols = columns;
+  select(_columns: string = "*", _options?: any) {
     return this;
   }
 
@@ -81,11 +78,31 @@ class QueryBuilder {
   }
 
   in(field: string, val: any[]) {
-    if (Array.isArray(val) && val.length > 0) {
-      this.conditions.push({ field, op: "in", val });
-    } else {
-      this.conditions.push({ field, op: "==", val: "__EMPTY_IN_CLAUSE__" });
+    this.conditions.push({ field, op: "in", val });
+    return this;
+  }
+
+  or(filterStr: string) {
+    if (filterStr) {
+      this.orConditions.push(filterStr);
     }
+    return this;
+  }
+
+  match(obj: Record<string, any>) {
+    for (const [k, v] of Object.entries(obj)) {
+      this.eq(k, v);
+    }
+    return this;
+  }
+
+  is(field: string, val: any) {
+    this.conditions.push({ field, op: "==", val });
+    return this;
+  }
+
+  contains(field: string, val: any) {
+    this.conditions.push({ field, op: "contains", val });
     return this;
   }
 
@@ -99,32 +116,74 @@ class QueryBuilder {
     return this;
   }
 
+  range(from: number, to: number) {
+    this.rangeConfig = { from, to };
+    return this;
+  }
+
   private async fetchDocs(): Promise<DocumentData[]> {
     try {
       const colRef = collection(db, this.tableName);
-      let qConstraints: any[] = [];
+      let docs: DocumentData[] = [];
 
-      for (const cond of this.conditions) {
-        qConstraints.push(where(cond.field, cond.op, cond.val));
-      }
-
-      if (this.orderConfig) {
-        qConstraints.push(fsOrderBy(this.orderConfig.field, this.orderConfig.direction));
-      }
-
-      if (this.limitNum !== null) {
-        qConstraints.push(fsLimit(this.limitNum));
-      }
-
-      const q = query(colRef, ...qConstraints);
-      const snapshot = await getDocs(q);
-
-      const results: DocumentData[] = [];
+      const snapshot = await getDocs(colRef);
       snapshot.forEach((d) => {
-        results.push({ id: d.id, ...d.data() });
+        docs.push({ id: d.id, ...d.data() });
       });
 
-      return results;
+      // Filter by equality & in conditions
+      if (this.conditions.length > 0) {
+        docs = docs.filter((d) => {
+          return this.conditions.every((c) => {
+            if (c.op === "==") return d[c.field] === c.val;
+            if (c.op === "!=") return d[c.field] !== c.val;
+            if (c.op === "in") return Array.isArray(c.val) && c.val.includes(d[c.field]);
+            if (c.op === "contains") {
+              const val = d[c.field];
+              return Array.isArray(val) ? val.includes(c.val) : val === c.val;
+            }
+            return true;
+          });
+        });
+      }
+
+      // Filter by OR conditions
+      if (this.orConditions.length > 0) {
+        docs = docs.filter((d) => {
+          return this.orConditions.every((orStr) => {
+            const parts = orStr.split(",");
+            return parts.some((part) => {
+              const match = part.trim().match(/([a-zA-Z0-9_]+)\.eq\.(.+)/);
+              if (match) {
+                const [, field, val] = match;
+                return String(d[field]) === String(val);
+              }
+              return true;
+            });
+          });
+        });
+      }
+
+      // Sort
+      if (this.orderConfig) {
+        const { field, direction } = this.orderConfig;
+        docs.sort((a, b) => {
+          const valA = a[field] ?? "";
+          const valB = b[field] ?? "";
+          if (valA < valB) return direction === "asc" ? -1 : 1;
+          if (valA > valB) return direction === "asc" ? 1 : -1;
+          return 0;
+        });
+      }
+
+      // Range / Limit
+      if (this.rangeConfig) {
+        docs = docs.slice(this.rangeConfig.from, this.rangeConfig.to + 1);
+      } else if (this.limitNum !== null) {
+        docs = docs.slice(0, this.limitNum);
+      }
+
+      return docs;
     } catch (err) {
       console.error(`Error querying Firestore collection '${this.tableName}':`, err);
       return [];
@@ -144,13 +203,10 @@ class QueryBuilder {
 
   async single() {
     const docs = await this.fetchDocs();
-    if (docs.length === 1) {
+    if (docs.length >= 1) {
       return { data: docs[0], error: null };
     }
-    if (docs.length === 0) {
-      return { data: null, error: { message: "JSON object requested, no rows returned", details: "", hint: "", code: "PGRST116" } };
-    }
-    return { data: docs[0], error: null };
+    return { data: null, error: { message: "JSON object requested, no rows returned", details: "", hint: "", code: "PGRST116" } };
   }
 
   async maybeSingle() {
@@ -223,18 +279,33 @@ class QueryBuilder {
   }
 }
 
+class RealtimeChannelStub {
+  name: string;
+  constructor(name: string) {
+    this.name = name;
+  }
+  on(_event: string, _filter: any, _callback?: any) {
+    return this;
+  }
+  subscribe(callback?: any) {
+    if (callback) callback("SUBSCRIBED");
+    return this;
+  }
+  unsubscribe() {
+    return this;
+  }
+}
+
 // Storage Translation Bridge
 const storageBridge = {
   from(bucket: string) {
     return {
       async upload(path: string, file: File | Blob, _options?: any) {
         try {
-          // Store object URL locally for instant browser preview
           const objectUrl = URL.createObjectURL(file);
           const storageKey = `${bucket}/${path}`;
           objectUrlStorageMap.set(storageKey, objectUrl);
 
-          // Best-effort upload to Firebase Storage if available
           try {
             const storageRef = ref(storage, storageKey);
             await uploadBytes(storageRef, file);
@@ -288,7 +359,6 @@ const functionsBridge = {
           created_at: new Date().toISOString()
         };
 
-        // Transaction log to Firestore
         await addDoc(collection(db, "verification_logs"), logEntry);
 
         if (cert) {
@@ -363,7 +433,6 @@ const authBridge = {
 
   onAuthStateChange(callback: (event: string, session: any) => void) {
     authListeners.add(callback);
-    // Initial call
     const session = mapFirebaseSession(auth.currentUser);
     callback(auth.currentUser ? "INITIAL_SESSION" : "SIGNED_OUT", session);
 
@@ -376,6 +445,19 @@ const authBridge = {
         }
       }
     };
+  },
+
+  async resend(_options?: any) {
+    return { data: {}, error: null };
+  },
+
+  async resetPasswordForEmail(_email: string, _options?: any) {
+    return { data: {}, error: null };
+  },
+
+  async updateUser(attributes: Record<string, any>) {
+    const fbUser = auth.currentUser;
+    return { data: { user: mapFirebaseUserToSupabaseUser(fbUser, attributes) }, error: null };
   }
 };
 
@@ -387,4 +469,9 @@ export const supabase = {
   auth: authBridge,
   storage: storageBridge,
   functions: functionsBridge,
+  channel(name: string) {
+    return new RealtimeChannelStub(name);
+  },
+  removeChannel(_channel: any) {},
+  removeAllChannels() {},
 };

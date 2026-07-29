@@ -51,7 +51,28 @@ const Auth = () => {
     if (error) {
       setError(error.message);
     } else {
-      navigate("/");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (roleData?.role === "recruiter") {
+          navigate("/recruiter");
+          return;
+        }
+        if (roleData?.role === "institution") {
+          navigate("/institution");
+          return;
+        }
+        if (roleData?.role === "admin") {
+          navigate("/admin");
+          return;
+        }
+      }
+      navigate("/student");
     }
   };
 
