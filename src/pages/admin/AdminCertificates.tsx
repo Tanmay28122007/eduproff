@@ -82,7 +82,7 @@ const AdminCertificates = () => {
                 <TableCell className="font-medium">{c.title}</TableCell>
                 <TableCell>{c.issuer}</TableCell>
                 <TableCell><Badge variant={statusVariant(c.verification_status)}>{c.verification_status}</Badge></TableCell>
-                <TableCell>{new Date(c.created_at).toLocaleDateString()}</TableCell>
+                <TableCell>{c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}</TableCell>
                 <TableCell className="text-right space-x-1">
                   {c.verification_status !== "invalid" && (
                     <Button variant="ghost" size="sm" onClick={() => markInvalid(c.id)} disabled={acting === c.id}>

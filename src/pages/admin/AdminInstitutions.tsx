@@ -152,7 +152,7 @@ const AdminInstitutions = () => {
   const filtered = institutions.filter(i => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
-    return (i.full_name || "").toLowerCase().includes(q) || i.user_id.toLowerCase().includes(q);
+    return (i.full_name || "").toLowerCase().includes(q) || (i.user_id || "").toLowerCase().includes(q);
   });
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
@@ -183,11 +183,11 @@ const AdminInstitutions = () => {
             </TableHeader>
             <TableBody>
               {filtered.map(i => (
-                <TableRow key={i.user_id} className={i.is_flagged ? "bg-destructive/5" : ""}>
-                  <TableCell className="font-mono text-xs">{i.user_id.slice(0, 8)}</TableCell>
+                <TableRow key={i.user_id || `inst_${Math.random()}`} className={i.is_flagged ? "bg-destructive/5" : ""}>
+                  <TableCell className="font-mono text-xs">{(i.user_id || "—").slice(0, 8)}</TableCell>
                   <TableCell className="font-medium">{i.full_name || "—"}</TableCell>
                   <TableCell>{i.cert_count}</TableCell>
-                  <TableCell>{new Date(i.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>{i.created_at ? new Date(i.created_at).toLocaleDateString() : "—"}</TableCell>
                   <TableCell>{i.is_flagged ? <Badge variant="destructive">Flagged</Badge> : <Badge variant="outline">Clean</Badge>}</TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="sm" onClick={() => handleView(i)}><Eye className="h-4 w-4" /></Button>

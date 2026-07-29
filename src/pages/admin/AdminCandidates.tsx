@@ -185,7 +185,7 @@ const AdminCandidates = () => {
   const filtered = candidates.filter(c => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
-    return (c.full_name || "").toLowerCase().includes(q) || c.user_id.toLowerCase().includes(q);
+    return (c.full_name || "").toLowerCase().includes(q) || (c.user_id || "").toLowerCase().includes(q);
   });
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
@@ -217,12 +217,12 @@ const AdminCandidates = () => {
             </TableHeader>
             <TableBody>
               {filtered.map(c => (
-                <TableRow key={c.user_id} className={c.is_flagged ? "bg-destructive/5" : ""}>
-                  <TableCell className="font-mono text-xs">{c.user_id.slice(0, 8)}</TableCell>
+                <TableRow key={c.user_id || `cand_${Math.random()}`} className={c.is_flagged ? "bg-destructive/5" : ""}>
+                  <TableCell className="font-mono text-xs">{(c.user_id || "—").slice(0, 8)}</TableCell>
                   <TableCell className="font-medium">{c.full_name || "—"}</TableCell>
                   <TableCell>{prefLabel(c.role_preference)}</TableCell>
                   <TableCell>{c.verified_count}/{c.cert_count}</TableCell>
-                  <TableCell>{new Date(c.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>{c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}</TableCell>
                   <TableCell>{c.is_flagged ? <Badge variant="destructive">Flagged</Badge> : <Badge variant="outline">Clean</Badge>}</TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="sm" onClick={() => handleViewProfile(c)}><Eye className="h-4 w-4" /></Button>

@@ -132,7 +132,7 @@ const AdminRecruiters = () => {
   const filtered = recruiters.filter(r => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
-    return (r.full_name || "").toLowerCase().includes(q) || r.user_id.toLowerCase().includes(q);
+    return (r.full_name || "").toLowerCase().includes(q) || (r.user_id || "").toLowerCase().includes(q);
   });
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
@@ -163,11 +163,11 @@ const AdminRecruiters = () => {
             </TableHeader>
             <TableBody>
               {filtered.map(r => (
-                <TableRow key={r.user_id} className={r.is_flagged ? "bg-destructive/5" : ""}>
-                  <TableCell className="font-mono text-xs">{r.user_id.slice(0, 8)}</TableCell>
+                <TableRow key={r.user_id || `rec_${Math.random()}`} className={r.is_flagged ? "bg-destructive/5" : ""}>
+                  <TableCell className="font-mono text-xs">{(r.user_id || "—").slice(0, 8)}</TableCell>
                   <TableCell className="font-medium">{r.full_name || "—"}</TableCell>
                   <TableCell>{r.verification_count}</TableCell>
-                  <TableCell>{new Date(r.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>{r.created_at ? new Date(r.created_at).toLocaleDateString() : "—"}</TableCell>
                   <TableCell>{r.is_flagged ? <Badge variant="destructive">Flagged</Badge> : <Badge variant="outline">Clean</Badge>}</TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="sm" onClick={() => setViewUser(r)}><Eye className="h-4 w-4" /></Button>
@@ -191,9 +191,9 @@ const AdminRecruiters = () => {
           {viewUser && (
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><span className="text-muted-foreground">Name:</span> <span className="font-medium">{viewUser.full_name || "—"}</span></div>
-              <div><span className="text-muted-foreground">ID:</span> <span className="font-mono text-xs">{viewUser.user_id.slice(0, 12)}</span></div>
+              <div><span className="text-muted-foreground">ID:</span> <span className="font-mono text-xs">{(viewUser.user_id || "—").slice(0, 12)}</span></div>
               <div><span className="text-muted-foreground">Verifications:</span> {viewUser.verification_count}</div>
-              <div><span className="text-muted-foreground">Joined:</span> {new Date(viewUser.created_at).toLocaleDateString()}</div>
+              <div><span className="text-muted-foreground">Joined:</span> {viewUser.created_at ? new Date(viewUser.created_at).toLocaleDateString() : "—"}</div>
               <div><span className="text-muted-foreground">Status:</span> {viewUser.is_flagged ? "Flagged" : "Clean"}</div>
             </div>
           )}
