@@ -9,7 +9,6 @@ import {
   collection, 
   doc, 
   getDocs, 
-  getDoc, 
   setDoc, 
   addDoc, 
   updateDoc, 
@@ -49,6 +48,57 @@ function mapFirebaseSession(fbUser: FirebaseUser | null, metadata: Record<string
     refresh_token: "firebase-mock-refresh-token",
     user,
   };
+}
+
+class MutationResultBuilder {
+  private actionPromise: Promise<{ data: any; error: any }>;
+  private isSingle: boolean = false;
+  private isMaybeSingle: boolean = false;
+
+  constructor(actionPromise: Promise<{ data: any; error: any }>) {
+    this.actionPromise = actionPromise;
+  }
+
+  select(_columns: string = "*") {
+    return this;
+  }
+
+  single() {
+    this.isSingle = true;
+    return this;
+  }
+
+  maybeSingle() {
+    this.isMaybeSingle = true;
+    return this;
+  }
+
+  eq(_field: string, _val: any) {
+    return this;
+  }
+
+  neq(_field: string, _val: any) {
+    return this;
+  }
+
+  in(_field: string, _val: any[]) {
+    return this;
+  }
+
+  async then(onfulfilled?: (value: { data: any; error: any }) => any, onrejected?: (reason: any) => any) {
+    try {
+      const res = await this.actionPromise;
+      let finalData = res.data;
+      if ((this.isSingle || this.isMaybeSingle) && Array.isArray(finalData)) {
+        finalData = finalData.length > 0 ? finalData[0] : null;
+      }
+      const output = { data: finalData, error: res.error };
+      return onfulfilled ? onfulfilled(output) : output;
+    } catch (err: any) {
+      const output = { data: null, error: err };
+      return onrejected ? onrejected(err) : output;
+    }
+  }
 }
 
 class QueryBuilder {
@@ -217,65 +267,81 @@ class QueryBuilder {
     return { data: docs[0], error: null };
   }
 
-  async insert(data: Record<string, any> | Array<Record<string, any>>) {
-    try {
-      const items = Array.isArray(data) ? data : [data];
-      const inserted: DocumentData[] = [];
+  insert(data: Record<string, any> | Array<Record<string, any>>) {
+    const doInsert = async () => {
+      try {
+        const items = Array.isArray(data) ? data : [data];
+        const inserted: DocumentData[] = [];
 
-      for (const item of items) {
-        let docId = item.id || item.user_id || item.certificate_id;
-        if (docId && typeof docId === "string") {
-          const docRef = doc(db, this.tableName, docId);
-          await setDoc(docRef, { ...item, created_at: item.created_at || new Date().toISOString() }, { merge: true });
-          inserted.push({ id: docId, ...item });
-        } else {
-          const colRef = collection(db, this.tableName);
-          const docRef = await addDoc(colRef, { ...item, created_at: item.created_at || new Date().toISOString() });
-          inserted.push({ id: docRef.id, ...item });
+        for (const item of items) {
+          let docId = item.id;
+          if (!docId && (this.tableName === "user_roles" || this.tableName === "profiles")) {
+            docId = item.user_id;
+          }
+
+          if (docId && typeof docId === "string") {
+            const docRef = doc(db, this.tableName, docId);
+            await setDoc(docRef, { ...item, created_at: item.created_at || new Date().toISOString() }, { merge: true });
+            inserted.push({ id: docId, ...item });
+          } else {
+            const colRef = collection(db, this.tableName);
+            const docRef = await addDoc(colRef, { ...item, created_at: item.created_at || new Date().toISOString() });
+            inserted.push({ id: docRef.id, ...item });
+          }
         }
-      }
 
-      return { data: Array.isArray(data) ? inserted : inserted[0], error: null };
-    } catch (err: any) {
-      console.error(`Error inserting into Firestore '${this.tableName}':`, err);
-      return { data: null, error: err };
-    }
+        return { data: Array.isArray(data) ? inserted : inserted[0], error: null };
+      } catch (err: any) {
+        console.error(`Error inserting into Firestore '${this.tableName}':`, err);
+        return { data: null, error: err };
+      }
+    };
+
+    return new MutationResultBuilder(doInsert());
   }
 
-  async upsert(data: Record<string, any> | Array<Record<string, any>>) {
+  upsert(data: Record<string, any> | Array<Record<string, any>>) {
     return this.insert(data);
   }
 
-  async update(data: Record<string, any>) {
-    try {
-      const docs = await this.fetchDocs();
-      const updated: DocumentData[] = [];
+  update(data: Record<string, any>) {
+    const doUpdate = async () => {
+      try {
+        const docs = await this.fetchDocs();
+        const updated: DocumentData[] = [];
 
-      for (const d of docs) {
-        const docRef = doc(db, this.tableName, d.id);
-        await updateDoc(docRef, { ...data, updated_at: new Date().toISOString() });
-        updated.push({ ...d, ...data });
+        for (const d of docs) {
+          const docRef = doc(db, this.tableName, d.id);
+          await updateDoc(docRef, { ...data, updated_at: new Date().toISOString() });
+          updated.push({ ...d, ...data });
+        }
+
+        return { data: updated, error: null };
+      } catch (err: any) {
+        console.error(`Error updating Firestore '${this.tableName}':`, err);
+        return { data: null, error: err };
       }
+    };
 
-      return { data: updated, error: null };
-    } catch (err: any) {
-      console.error(`Error updating Firestore '${this.tableName}':`, err);
-      return { data: null, error: err };
-    }
+    return new MutationResultBuilder(doUpdate());
   }
 
-  async delete() {
-    try {
-      const docs = await this.fetchDocs();
-      for (const d of docs) {
-        const docRef = doc(db, this.tableName, d.id);
-        await deleteDoc(docRef);
+  delete() {
+    const doDelete = async () => {
+      try {
+        const docs = await this.fetchDocs();
+        for (const d of docs) {
+          const docRef = doc(db, this.tableName, d.id);
+          await deleteDoc(docRef);
+        }
+        return { data: docs, error: null };
+      } catch (err: any) {
+        console.error(`Error deleting from Firestore '${this.tableName}':`, err);
+        return { data: null, error: err };
       }
-      return { data: docs, error: null };
-    } catch (err: any) {
-      console.error(`Error deleting from Firestore '${this.tableName}':`, err);
-      return { data: null, error: err };
-    }
+    };
+
+    return new MutationResultBuilder(doDelete());
   }
 }
 
