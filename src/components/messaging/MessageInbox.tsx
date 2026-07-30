@@ -244,7 +244,15 @@ export function MessageInbox({ canMessageRoles }: MessageInboxProps) {
                       >
                         <p>{m.content}</p>
                         <p className={`text-[10px] mt-1 ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                          {m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                          {(() => {
+                            if (!m.created_at) return '';
+                            try {
+                              const d = new Date(m.created_at);
+                              return isNaN(d.getTime()) ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            } catch {
+                              return '';
+                            }
+                          })()}
                         </p>
                       </div>
                     </div>

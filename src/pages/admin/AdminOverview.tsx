@@ -40,16 +40,20 @@ const AdminOverview = () => {
         profiles.forEach((p) => {
           if (p.created_at) {
             const d = new Date(p.created_at);
-            const key = d.toLocaleString("default", { month: "short", year: "2-digit" });
-            if (months[key]) months[key].users++;
+            if (!isNaN(d.getTime())) {
+              const key = d.toLocaleString("default", { month: "short", year: "2-digit" });
+              if (months[key]) months[key].users++;
+            }
           }
         });
 
         certs.forEach((c) => {
           if (c.created_at) {
             const d = new Date(c.created_at);
-            const key = d.toLocaleString("default", { month: "short", year: "2-digit" });
-            if (months[key]) months[key].certificates++;
+            if (!isNaN(d.getTime())) {
+              const key = d.toLocaleString("default", { month: "short", year: "2-digit" });
+              if (months[key]) months[key].certificates++;
+            }
           }
         });
 

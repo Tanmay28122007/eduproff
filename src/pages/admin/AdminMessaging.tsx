@@ -9,6 +9,7 @@ import { Loader2, Send, Search, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { safeFormatDateTime } from "@/lib/utils";
 
 interface UserEntry {
   user_id: string;
@@ -210,7 +211,7 @@ const AdminMessaging = () => {
                 <div key={m.id} className="p-3 rounded-lg border text-sm">
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium">To: {m.receiver_name}</span>
-                    <span className="text-xs text-muted-foreground">{m.created_at ? new Date(m.created_at).toLocaleString() : 'N/A'}</span>
+                    <span className="text-xs text-muted-foreground">{safeFormatDateTime(m.created_at, undefined, 'N/A')}</span>
                   </div>
                   <p className="text-muted-foreground">{m.content}</p>
                 </div>

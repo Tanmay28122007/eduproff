@@ -11,6 +11,7 @@ import { Trash2, Loader2, Search, Flag, Eye, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { safeFormatDate } from "@/lib/utils";
 
 interface RecruiterRow {
   user_id: string;
@@ -167,7 +168,7 @@ const AdminRecruiters = () => {
                   <TableCell className="font-mono text-xs">{(r.user_id || "—").slice(0, 8)}</TableCell>
                   <TableCell className="font-medium">{r.full_name || "—"}</TableCell>
                   <TableCell>{r.verification_count}</TableCell>
-                  <TableCell>{r.created_at ? new Date(r.created_at).toLocaleDateString() : "—"}</TableCell>
+                  <TableCell>{safeFormatDate(r.created_at)}</TableCell>
                   <TableCell>{r.is_flagged ? <Badge variant="destructive">Flagged</Badge> : <Badge variant="outline">Clean</Badge>}</TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="sm" onClick={() => setViewUser(r)}><Eye className="h-4 w-4" /></Button>
@@ -193,7 +194,7 @@ const AdminRecruiters = () => {
               <div><span className="text-muted-foreground">Name:</span> <span className="font-medium">{viewUser.full_name || "—"}</span></div>
               <div><span className="text-muted-foreground">ID:</span> <span className="font-mono text-xs">{(viewUser.user_id || "—").slice(0, 12)}</span></div>
               <div><span className="text-muted-foreground">Verifications:</span> {viewUser.verification_count}</div>
-              <div><span className="text-muted-foreground">Joined:</span> {viewUser.created_at ? new Date(viewUser.created_at).toLocaleDateString() : "—"}</div>
+              <div><span className="text-muted-foreground">Joined:</span> {safeFormatDate(viewUser.created_at)}</div>
               <div><span className="text-muted-foreground">Status:</span> {viewUser.is_flagged ? "Flagged" : "Clean"}</div>
             </div>
           )}

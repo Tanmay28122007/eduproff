@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { safeFormatDate } from "@/lib/utils";
 import { Search, FileText, Calendar, User, Hash, Loader2 } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -86,7 +87,7 @@ const IssuedCertificates = () => {
                   <TableRow key={cert.certificate_id}>
                     <TableCell className="font-medium">{cert.student_name}</TableCell>
                     <TableCell>{cert.course_name}</TableCell>
-                    <TableCell>{new Date(cert.issue_date).toLocaleDateString()}</TableCell>
+                    <TableCell>{safeFormatDate(cert.issue_date)}</TableCell>
                     <TableCell>
                       <code className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs font-mono">
                         {cert.certificate_id}

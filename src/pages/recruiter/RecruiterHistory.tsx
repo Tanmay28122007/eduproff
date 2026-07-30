@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { safeFormatDate } from "@/lib/utils";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -96,7 +97,7 @@ const RecruiterHistory = () => {
                     )}
                   </TableCell>
                   <TableCell className="font-bold">{log.trust_score}%</TableCell>
-                  <TableCell>{log.created_at ? new Date(log.created_at).toLocaleDateString() : 'N/A'}</TableCell>
+                  <TableCell>{safeFormatDate(log.created_at, undefined, 'N/A')}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

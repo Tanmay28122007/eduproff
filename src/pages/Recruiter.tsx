@@ -6,6 +6,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { safeFormatDate } from "@/lib/utils";
 import { 
   Search, 
   FileText, 
@@ -386,12 +387,12 @@ const Recruiter = () => {
                               <Building2 className="w-3.5 h-3.5" />
                               {cert.issuer}
                             </span>
-                            {cert.issue_date && (
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-3.5 h-3.5" />
-                                {new Date(cert.issue_date).toLocaleDateString()}
-                              </span>
-                            )}
+                             {cert.issue_date && (
+                               <span className="flex items-center gap-1">
+                                 <Calendar className="w-3.5 h-3.5" />
+                                 {safeFormatDate(cert.issue_date)}
+                               </span>
+                             )}
                             {cert.profile?.full_name && (
                               <span className="flex items-center gap-1">
                                 <Users className="w-3.5 h-3.5" />

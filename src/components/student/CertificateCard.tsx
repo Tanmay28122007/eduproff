@@ -4,6 +4,7 @@ import { CheckCircle, XCircle, Clock, FileText, Share2, Eye, Trash2, Calendar, B
 import { Certificate } from "@/hooks/useCertificates";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { safeFormatDate } from "@/lib/utils";
 
 interface CertificateCardProps {
   certificate: Certificate;
@@ -74,7 +75,7 @@ export function CertificateCard({ certificate, onDelete }: CertificateCardProps)
               {certificate.issue_date && (
                 <span className="flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5 text-primary" />
-                  {new Date(certificate.issue_date).toLocaleDateString()}
+                  {safeFormatDate(certificate.issue_date)}
                 </span>
               )}
             </div>

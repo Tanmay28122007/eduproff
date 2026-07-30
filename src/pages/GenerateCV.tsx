@@ -9,6 +9,7 @@ import { FileText, Download, Award, Loader2, CheckCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCertificates } from "@/hooks/useCertificates";
 import { toast } from "sonner";
+import { safeFormatDate } from "@/lib/utils";
 import jsPDF from "jspdf";
 
 const GenerateCV = () => {
@@ -103,9 +104,8 @@ const GenerateCV = () => {
           doc.setFontSize(9);
           doc.setFont("helvetica", "normal");
           doc.setTextColor(100, 100, 100);
-          const certDate = cert.issue_date 
-            ? new Date(cert.issue_date).toLocaleDateString("en-US", { year: "numeric", month: "long" })
-            : new Date(cert.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long" });
+          const dateStr = cert.issue_date || cert.created_at;
+          const certDate = safeFormatDate(dateStr, { year: "numeric", month: "long" });
           doc.text(`${cert.issuer} | ${certDate}`, margin + 5, yPosition);
           yPosition += 8;
           doc.setTextColor(0, 0, 0);

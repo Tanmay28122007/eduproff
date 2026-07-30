@@ -22,6 +22,41 @@ const objectUrlStorageMap = new Map<string, string>();
 
 const LOCAL_STORE_PREFIX = "eduproof_firestore_";
 
+const SEED_ISSUED_CERTIFICATES: DocumentData[] = [
+  {
+    id: "cert_seed_1",
+    certificate_id: "EDU-2025-001",
+    course_name: "Full-Stack Web Development",
+    student_name: "Stanford University",
+    issue_date: "2025-01-15T00:00:00.000Z",
+    created_at: "2025-01-15T00:00:00.000Z",
+  },
+  {
+    id: "cert_seed_2",
+    certificate_id: "AWS-12345",
+    course_name: "AWS Certified Solutions Architect",
+    student_name: "Amazon Web Services",
+    issue_date: "2024-11-20T00:00:00.000Z",
+    created_at: "2024-11-20T00:00:00.000Z",
+  },
+  {
+    id: "cert_seed_3",
+    certificate_id: "COURSE-67890",
+    course_name: "Machine Learning Specialization",
+    student_name: "Coursera / Stanford",
+    issue_date: "2024-12-10T00:00:00.000Z",
+    created_at: "2024-12-10T00:00:00.000Z",
+  },
+  {
+    id: "cert_seed_4",
+    certificate_id: "CERT-001",
+    course_name: "Advanced Computer Science",
+    student_name: "MIT OpenCourseWare",
+    issue_date: "2025-02-01T00:00:00.000Z",
+    created_at: "2025-02-01T00:00:00.000Z",
+  },
+];
+
 function fetchWithTimeout<T>(promise: Promise<T>, timeoutMs = 1200): Promise<T> {
   return Promise.race([
     promise,
@@ -34,9 +69,17 @@ function fetchWithTimeout<T>(promise: Promise<T>, timeoutMs = 1200): Promise<T> 
 function getLocalStorageDocs(tableName: string): DocumentData[] {
   try {
     const raw = localStorage.getItem(LOCAL_STORE_PREFIX + tableName);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+    if (tableName === "issued_certificates") {
+      saveLocalStorageDocs(tableName, SEED_ISSUED_CERTIFICATES);
+      return SEED_ISSUED_CERTIFICATES;
+    }
     return [];
+  } catch {
+    return tableName === "issued_certificates" ? SEED_ISSUED_CERTIFICATES : [];
   }
 }
 
@@ -249,7 +292,12 @@ class QueryBuilder {
     if (this.conditions.length > 0) {
       docs = docs.filter((d) => {
         return this.conditions.every((c) => {
-          if (c.op === "==") return d[c.field] === c.val;
+          if (c.op === "==") {
+            if (c.field === "certificate_id" && typeof c.val === "string") {
+              return String(d[c.field] || "").toLowerCase() === c.val.toLowerCase();
+            }
+            return d[c.field] === c.val;
+          }
           if (c.op === "!=") return d[c.field] !== c.val;
           if (c.op === "in") return Array.isArray(c.val) && c.val.includes(d[c.field]);
           if (c.op === "contains") {
@@ -417,7 +465,11 @@ const storageBridge = {
         const storageKey = `${bucket}/${path}`;
         objectUrlStorageMap.set(storageKey, objectUrl);
 
-        uploadBytes(ref(storage, storageKey), file).catch(() => {});
+        try {
+          if (storage && storage.app && storage.app.options && storage.app.options.storageBucket) {
+            uploadBytes(ref(storage, storageKey), file).catch(() => {});
+          }
+        } catch {}
 
         return { data: { path, fullPath: storageKey, publicUrl: objectUrl }, error: null };
       },

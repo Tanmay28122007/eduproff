@@ -26,9 +26,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserRole = async (userId: string): Promise<UserRole> => {
     try {
-      const cached = localStorage.getItem(`eduproof_cached_role_${userId}`);
-      if (cached) return cached as UserRole;
-
       const { data } = await supabase
         .from("user_roles")
         .select("role")
@@ -38,11 +35,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const roleVal = (data?.role as UserRole) || null;
       if (roleVal) {
         localStorage.setItem(`eduproof_cached_role_${userId}`, roleVal);
+        return roleVal;
       }
-      return roleVal;
+
+      const cached = localStorage.getItem(`eduproof_cached_role_${userId}`);
+      if (cached) return cached as UserRole;
+
+      return null;
     } catch (error) {
       console.error("Error fetching user role:", error);
-      return null;
+      const cached = localStorage.getItem(`eduproof_cached_role_${userId}`);
+      return (cached as UserRole) || null;
     }
   };
 
@@ -51,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initAuth = async () => {
       try {
+        setLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         if (!isMounted) return;
 
@@ -60,6 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           const userRole = await fetchUserRole(session.user.id);
           if (isMounted) setRole(userRole);
+        } else {
+          if (isMounted) setRole(null);
         }
       } catch (err) {
         console.error("Auth init error:", err);

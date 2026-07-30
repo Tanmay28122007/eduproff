@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { safeFormatDate } from "@/lib/utils";
 import { toast } from "sonner";
 import {
   Search,
@@ -185,7 +186,7 @@ const RecruiterVerify = () => {
                 {result.issue_date && (
                   <div className="flex items-center gap-2.5 text-muted-foreground">
                     <Calendar className="w-4 h-4 flex-shrink-0" />
-                    <span>Issued: <span className="text-foreground font-medium">{new Date(result.issue_date).toLocaleDateString()}</span></span>
+                    <span>Issued: <span className="text-foreground font-medium">{safeFormatDate(result.issue_date)}</span></span>
                   </div>
                 )}
               </div>

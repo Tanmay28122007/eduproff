@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { safeFormatDate } from "@/lib/utils";
 import {
   ArrowLeft,
   Users,
@@ -150,7 +151,7 @@ const CandidateProfile = () => {
               </span>
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
-                Joined {new Date(profile.created_at).toLocaleDateString()}
+                Joined {safeFormatDate(profile.created_at)}
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -217,7 +218,7 @@ const CandidateProfile = () => {
                       {cert.issue_date && (
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          {new Date(cert.issue_date).toLocaleDateString()}
+                          {safeFormatDate(cert.issue_date)}
                         </span>
                       )}
                     </div>

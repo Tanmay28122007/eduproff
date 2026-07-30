@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { safeFormatDate } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 interface UserRow {
@@ -105,7 +106,7 @@ const AdminUsers = () => {
                 <TableCell>
                   <Badge variant={roleBadgeVariant(u.role)}>{u.role}</Badge>
                 </TableCell>
-                <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
+                <TableCell>{safeFormatDate(u.created_at)}</TableCell>
                 <TableCell className="text-right">
                   {u.role !== "admin" && (
                     <Button

@@ -11,6 +11,7 @@ import { Trash2, Loader2, Search, Flag, Eye, Pencil, Award } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { safeFormatDate } from "@/lib/utils";
 
 interface CandidateRow {
   user_id: string;
@@ -222,7 +223,7 @@ const AdminCandidates = () => {
                   <TableCell className="font-medium">{c.full_name || "—"}</TableCell>
                   <TableCell>{prefLabel(c.role_preference)}</TableCell>
                   <TableCell>{c.verified_count}/{c.cert_count}</TableCell>
-                  <TableCell>{c.created_at ? new Date(c.created_at).toLocaleDateString() : "—"}</TableCell>
+                  <TableCell>{safeFormatDate(c.created_at)}</TableCell>
                   <TableCell>{c.is_flagged ? <Badge variant="destructive">Flagged</Badge> : <Badge variant="outline">Clean</Badge>}</TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="sm" onClick={() => handleViewProfile(c)}><Eye className="h-4 w-4" /></Button>
@@ -249,7 +250,7 @@ const AdminCandidates = () => {
                 <div><span className="text-muted-foreground">Name:</span> <span className="font-medium">{viewUser.full_name || "—"}</span></div>
                 <div><span className="text-muted-foreground">ID:</span> <span className="font-mono text-xs">{viewUser.user_id.slice(0, 12)}</span></div>
                 <div><span className="text-muted-foreground">Preference:</span> {prefLabel(viewUser.role_preference)}</div>
-                <div><span className="text-muted-foreground">Joined:</span> {new Date(viewUser.created_at).toLocaleDateString()}</div>
+                <div><span className="text-muted-foreground">Joined:</span> {safeFormatDate(viewUser.created_at)}</div>
               </div>
               <div>
                 <h4 className="text-sm font-semibold mb-2 flex items-center gap-1"><Award className="w-4 h-4" /> Certificates ({viewCerts.length})</h4>

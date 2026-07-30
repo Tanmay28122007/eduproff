@@ -1,6 +1,6 @@
 import { Bell, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Certificate } from "@/hooks/useCertificates";
-import { formatDistanceToNow } from "date-fns";
+import { safeTimeAgo } from "@/lib/utils";
 
 interface NotificationsPanelProps {
   certificates: Certificate[];
@@ -9,7 +9,7 @@ interface NotificationsPanelProps {
 export const NotificationsPanel = ({ certificates }: NotificationsPanelProps) => {
   // Generate notifications from recent certificates
   const notifications = certificates.slice(0, 5).map((cert) => {
-    const timeAgo = formatDistanceToNow(new Date(cert.updated_at), { addSuffix: true });
+    const timeAgo = safeTimeAgo(cert.updated_at || cert.created_at);
     
     if (cert.verification_status === "verified") {
       return {

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, CheckCircle, XCircle, Clock, Shield, Award, Building, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { safeFormatDate } from "@/lib/utils";
 
 interface VerificationResult {
   found: boolean;
@@ -256,7 +257,7 @@ export default function PublicVerify() {
                           <div>
                             <p className="text-sm text-muted-foreground">Issue Date</p>
                             <p className="font-semibold text-foreground">
-                              {new Date(result.certificate.issueDate).toLocaleDateString("en-US", {
+                              {safeFormatDate(result.certificate.issueDate, {
                                 year: "numeric",
                                 month: "long",
                                 day: "numeric",

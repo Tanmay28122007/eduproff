@@ -90,11 +90,18 @@ const Verify = () => {
       const fileUrl = URL.createObjectURL(file);
 
       // Fast check in institutional database
-      const { data: issuedData } = await supabase
+      let { data: issuedData } = await supabase
         .from("issued_certificates")
         .select("*")
         .eq("certificate_id", code)
         .maybeSingle();
+
+      if (!issuedData) {
+        const { data: allCerts } = await supabase.from("issued_certificates").select("*");
+        issuedData = (allCerts || []).find(
+          c => (c.certificate_id || "").trim().toLowerCase() === code.toLowerCase()
+        ) || null;
+      }
 
       const isVerified = !!issuedData;
       const verificationResult = {

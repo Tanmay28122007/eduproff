@@ -11,6 +11,7 @@ import { Trash2, Loader2, Search, Flag, Eye, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { safeFormatDate } from "@/lib/utils";
 
 interface InstitutionRow {
   user_id: string;
@@ -187,7 +188,7 @@ const AdminInstitutions = () => {
                   <TableCell className="font-mono text-xs">{(i.user_id || "—").slice(0, 8)}</TableCell>
                   <TableCell className="font-medium">{i.full_name || "—"}</TableCell>
                   <TableCell>{i.cert_count}</TableCell>
-                  <TableCell>{i.created_at ? new Date(i.created_at).toLocaleDateString() : "—"}</TableCell>
+                  <TableCell>{safeFormatDate(i.created_at)}</TableCell>
                   <TableCell>{i.is_flagged ? <Badge variant="destructive">Flagged</Badge> : <Badge variant="outline">Clean</Badge>}</TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="sm" onClick={() => handleView(i)}><Eye className="h-4 w-4" /></Button>
@@ -214,7 +215,7 @@ const AdminInstitutions = () => {
                 <div key={c.certificate_id} className="flex items-center justify-between p-3 rounded-lg border text-sm">
                   <div>
                     <p className="font-medium">{c.course_name}</p>
-                    <p className="text-xs text-muted-foreground">{c.student_name} · {new Date(c.issue_date).toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground">{c.student_name} · {safeFormatDate(c.issue_date)}</p>
                   </div>
                   <span className="font-mono text-xs text-muted-foreground">{c.certificate_id.slice(0, 10)}</span>
                 </div>

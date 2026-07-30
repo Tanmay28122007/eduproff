@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { safeFormatDateTime } from "@/lib/utils";
 
 interface LogRow {
   id: string;
@@ -68,7 +69,7 @@ const AdminActivity = () => {
                   <Badge variant={l.status === "verified" ? "default" : "destructive"}>{l.status}</Badge>
                 </TableCell>
                 <TableCell>{l.trust_score}/100</TableCell>
-                <TableCell>{new Date(l.created_at).toLocaleString()}</TableCell>
+                <TableCell>{safeFormatDateTime(l.created_at)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

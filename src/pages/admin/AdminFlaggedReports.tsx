@@ -7,6 +7,7 @@ import { Loader2, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { safeFormatDate } from "@/lib/utils";
 
 interface FlagRow {
   id: string;
@@ -97,7 +98,7 @@ const AdminFlaggedReports = () => {
                     <TableCell className="font-medium">{f.user_name}</TableCell>
                     <TableCell>{roleBadge(f.user_role)}</TableCell>
                     <TableCell className="max-w-xs truncate">{f.reason}</TableCell>
-                    <TableCell>{new Date(f.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>{safeFormatDate(f.created_at)}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="sm" onClick={() => resolveFlag(f.id)} disabled={acting === f.id}>
                         {acting === f.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 text-emerald-500" />}
@@ -131,8 +132,8 @@ const AdminFlaggedReports = () => {
                     <TableCell className="font-medium">{f.user_name}</TableCell>
                     <TableCell>{roleBadge(f.user_role)}</TableCell>
                     <TableCell className="max-w-xs truncate">{f.reason}</TableCell>
-                    <TableCell>{new Date(f.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell>{f.resolved_at ? new Date(f.resolved_at).toLocaleDateString() : "—"}</TableCell>
+                    <TableCell>{safeFormatDate(f.created_at)}</TableCell>
+                    <TableCell>{safeFormatDate(f.resolved_at)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
