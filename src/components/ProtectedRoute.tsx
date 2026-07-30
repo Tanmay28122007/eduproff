@@ -21,20 +21,16 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/auth" replace />;
   }
 
-  // If specific roles are required but user role hasn't resolved yet, wait for resolution
-  if (allowedRoles && allowedRoles.length > 0 && role === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // Resolve role cleanly without hanging on infinite spinner
+  const effectiveRole =
+    role ||
+    (user ? (localStorage.getItem(`eduproof_cached_role_${user.id}`) as any) || "candidate" : null);
 
-  if (allowedRoles && allowedRoles.length > 0 && role && !allowedRoles.includes(role as any)) {
-    if (role === "admin") return <Navigate to="/admin" replace />;
-    if (role === "candidate") return <Navigate to="/student" replace />;
-    if (role === "recruiter") return <Navigate to="/recruiter" replace />;
-    if (role === "institution") return <Navigate to="/institution" replace />;
+  if (allowedRoles && allowedRoles.length > 0 && effectiveRole && !allowedRoles.includes(effectiveRole)) {
+    if (effectiveRole === "admin") return <Navigate to="/admin" replace />;
+    if (effectiveRole === "candidate") return <Navigate to="/student" replace />;
+    if (effectiveRole === "recruiter") return <Navigate to="/recruiter" replace />;
+    if (effectiveRole === "institution") return <Navigate to="/institution" replace />;
     return <Navigate to="/" replace />;
   }
 

@@ -31,11 +31,13 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const redirectByRole = (role: Role) => {
-    switch (role) {
+  const redirectByRole = (roleStr: string | null) => {
+    switch (roleStr) {
       case "candidate": navigate("/student"); break;
       case "recruiter": navigate("/recruiter"); break;
       case "institution": navigate("/institution"); break;
+      case "admin": navigate("/admin"); break;
+      default: navigate("/student"); break;
     }
   };
 
@@ -48,32 +50,23 @@ const Auth = () => {
   };
 
   const handleUserLogin = async () => {
-    const { error } = await signIn(email, password);
-    if (error) {
-      setError(error.message);
+    const res = await signIn(email, password);
+    if (res.error) {
+      setError(res.error.message);
     } else {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (roleData?.role === "recruiter") {
-          navigate("/recruiter");
-          return;
-        }
-        if (roleData?.role === "institution") {
-          navigate("/institution");
-          return;
-        }
-        if (roleData?.role === "admin") {
-          navigate("/admin");
-          return;
+      let resolvedRole = res.role;
+      if (!resolvedRole || resolvedRole === "candidate") {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: roleData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          if (roleData?.role) resolvedRole = roleData.role as Role;
         }
       }
-      navigate("/student");
+      redirectByRole(resolvedRole || "candidate");
     }
   };
 

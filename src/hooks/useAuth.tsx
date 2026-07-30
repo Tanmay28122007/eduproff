@@ -11,7 +11,7 @@ interface AuthContextType {
   role: UserRole;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, role: "candidate" | "recruiter" | "institution" | "admin") => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; role?: UserRole }>;
   signOut: () => Promise<void>;
 }
 
@@ -26,6 +26,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserRole = async (userId: string): Promise<UserRole> => {
     try {
+      const cached = localStorage.getItem(`eduproof_cached_role_${userId}`);
+      
       const { data } = await supabase
         .from("user_roles")
         .select("role")
@@ -38,14 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return roleVal;
       }
 
-      const cached = localStorage.getItem(`eduproof_cached_role_${userId}`);
       if (cached) return cached as UserRole;
 
-      return null;
+      return "candidate";
     } catch (error) {
       console.error("Error fetching user role:", error);
       const cached = localStorage.getItem(`eduproof_cached_role_${userId}`);
-      return (cached as UserRole) || null;
+      return (cached as UserRole) || "candidate";
     }
   };
 
@@ -85,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userRole = await fetchUserRole(session.user.id);
           if (isMounted) setRole(userRole);
         } catch {
-          if (isMounted) setRole(null);
+          if (isMounted) setRole("candidate");
         }
       } else {
         if (isMounted) setRole(null);
@@ -154,18 +155,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
       });
 
-      if (error) return { error };
+      if (error) return { error, role: null };
 
+      let userRole: UserRole = "candidate";
       if (data.user) {
         setUser(data.user);
         setSession(data.session);
-        const userRole = await fetchUserRole(data.user.id);
+        userRole = await fetchUserRole(data.user.id);
         setRole(userRole);
       }
 
-      return { error: null };
+      return { error: null, role: userRole };
     } catch (error: any) {
-      return { error: error as Error };
+      return { error: error as Error, role: null };
     }
   };
 
