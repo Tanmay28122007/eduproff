@@ -18,7 +18,7 @@ const items = [
 export function RecruiterSidebar() {
   return (
     <Sidebar className="border-r border-border/50">
-      <SidebarContent className="pt-4">
+      <SidebarContent className="pt-20">
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4">
             Recruiter Portal

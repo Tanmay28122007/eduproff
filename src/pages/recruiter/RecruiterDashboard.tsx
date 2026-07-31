@@ -5,16 +5,16 @@ import { Layout } from "@/components/layout/Layout";
 
 const RecruiterDashboard = () => {
   return (
-    <Layout>
-      <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
+      <Layout>
         <div className="flex min-h-[calc(100vh-4rem)] w-full">
           <RecruiterSidebar />
           <main className="flex-1 p-6 md:p-10 overflow-auto">
             <Outlet />
           </main>
         </div>
-      </SidebarProvider>
-    </Layout>
+      </Layout>
+    </SidebarProvider>
   );
 };
 

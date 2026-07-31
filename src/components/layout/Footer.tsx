@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { Shield } from "lucide-react";
+import { useSidebarOptional } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 const footerLinks = {
   product: [
@@ -19,8 +21,17 @@ const footerLinks = {
 };
 
 export function Footer() {
+  const sidebar = useSidebarOptional();
+  const isSidebarCollapsible = sidebar !== null;
+  const isSidebarOpen = sidebar?.open ?? false;
+
   return (
-    <footer className="bg-card border-t border-border">
+    <footer
+      className={cn(
+        "bg-card border-t border-border transition-[padding] duration-200 ease-linear",
+        isSidebarCollapsible && (isSidebarOpen ? "md:pl-64" : "md:pl-12")
+      )}
+    >
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1">
