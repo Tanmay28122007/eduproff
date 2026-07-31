@@ -20,9 +20,11 @@ export const ConfidenceMeter: React.FC<ConfidenceMeterProps> = ({
   let badgeBg = "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
   let Icon = ShieldCheck;
 
-  if (score < 50) {
-    strokeColor = "#ef4444"; // red-500
-    badgeBg = "bg-destructive/10 text-destructive border-destructive/20";
+  if (confidenceLevel === "Needs Manual Review" || score < 50) {
+    strokeColor = confidenceLevel === "Needs Manual Review" ? "#f97316" : "#ef4444"; // orange-500 / red-500
+    badgeBg = confidenceLevel === "Needs Manual Review" 
+      ? "bg-orange-500/10 text-orange-600 border-orange-500/20 font-bold" 
+      : "bg-destructive/10 text-destructive border-destructive/20";
     Icon = ShieldAlert;
   } else if (score < 75) {
     strokeColor = "#f59e0b"; // amber-500

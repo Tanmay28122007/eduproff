@@ -1,7 +1,8 @@
 import React from "react";
 import { TrustAnalysisResult } from "@/services/trustEngine";
-import { CheckCircle, AlertTriangle, Cpu, Globe, Search, Lock, UserCheck, Eye } from "lucide-react";
+import { CheckCircle, AlertTriangle, Cpu, Globe, Search, Lock, UserCheck, Eye, ShieldAlert, CheckCircle2, AlertCircle, FileCheck, Layers } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 interface AIExplainablePanelProps {
   result: TrustAnalysisResult;
@@ -17,8 +18,89 @@ export const AIExplainablePanel: React.FC<AIExplainablePanelProps> = ({ result }
     { label: "Human Verification", score: result.pillarScores.humanEndorsement, weight: "10%", icon: UserCheck },
   ];
 
+  const getStepIcon = (status: "passed" | "warning" | "failed" | "manual_review") => {
+    switch (status) {
+      case "passed":
+        return <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />;
+      case "warning":
+        return <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />;
+      case "manual_review":
+        return <ShieldAlert className="w-4 h-4 text-orange-500 flex-shrink-0" />;
+      case "failed":
+        return <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />;
+    }
+  };
+
+  const getStepBadge = (status: "passed" | "warning" | "failed" | "manual_review") => {
+    switch (status) {
+      case "passed":
+        return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px]">Passed</Badge>;
+      case "warning":
+        return <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[10px]">Notice</Badge>;
+      case "manual_review":
+        return <Badge className="bg-orange-500/10 text-orange-600 border-orange-500/20 text-[10px]">Needs Review</Badge>;
+      case "failed":
+        return <Badge variant="destructive" className="text-[10px]">Flagged</Badge>;
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Credibility Warning for Manual Review */}
+      {result.requiresManualReview && (
+        <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-sm">
+            <ShieldAlert className="w-5 h-5" />
+            Credibility Directive: Needs Manual Review
+          </div>
+          <p className="text-xs text-foreground/90 leading-relaxed">
+            Because objective verification features (such as an embedded QR code, digital PKI signature, or verified public web record) could not be definitively matched, EduProof classifies this achievement as <strong>"Needs Manual Review"</strong> to prevent false positives and maintain systemic credibility.
+          </p>
+        </div>
+      )}
+
+      {/* 9-Step Verification Execution Pipeline */}
+      <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 space-y-4">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Layers className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-display font-bold text-foreground text-base">
+                9-Step Execution Pipeline Breakdown
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Sequential deterministic & AI checks applied to this achievement
+              </p>
+            </div>
+          </div>
+          <Badge variant="outline" className="text-xs font-mono">
+            Hybrid AI + PKI Engine
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {result.pipelineSteps?.map((step) => (
+            <div
+              key={step.stepNumber}
+              className="p-3.5 rounded-xl bg-secondary/30 border border-border/40 space-y-1.5 flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  {getStepIcon(step.status)}
+                  Step {step.stepNumber}: {step.name}
+                </span>
+                {getStepBadge(step.status)}
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                {step.details}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Executive Summary Card */}
       <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
         <div className="flex items-center gap-2 mb-3">
