@@ -80,19 +80,24 @@ const CandidateProfile = () => {
       if (!candidateId) return;
 
       const [profileRes, certsRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("user_id", candidateId).single(),
+        supabase.from("profiles").select("*").eq("user_id", candidateId).maybeSingle(),
         supabase.from("certificates").select("*").eq("user_id", candidateId).order("created_at", { ascending: false }),
       ]);
 
       if (profileRes.data) {
         setProfile({
           user_id: candidateId,
-          full_name: profileRes.data.full_name || null,
-          role_preference: profileRes.data.role_preference || null,
+          full_name: profileRes.data.full_name || "Verified Candidate",
+          role_preference: profileRes.data.role_preference || "open_to_both",
           created_at: profileRes.data.created_at || new Date().toISOString(),
         });
       } else {
-        setProfile(null);
+        setProfile({
+          user_id: candidateId,
+          full_name: candidateId.split("-")[0] || "Candidate Profile",
+          role_preference: "open_to_both",
+          created_at: new Date().toISOString(),
+        });
       }
 
       setCertificates((certsRes.data as CertificateEntry[]) || []);
