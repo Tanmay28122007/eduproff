@@ -583,19 +583,31 @@ const authBridge = {
   },
 
   async getSession() {
+    try {
+      await auth.authStateReady();
+    } catch {}
     const fbUser = auth.currentUser;
     return { data: { session: mapFirebaseSession(fbUser) }, error: null };
   },
 
   async getUser() {
+    try {
+      await auth.authStateReady();
+    } catch {}
     const fbUser = auth.currentUser;
     return { data: { user: mapFirebaseUserToSupabaseUser(fbUser) }, error: null };
   },
 
   onAuthStateChange(callback: (event: string, session: any) => void) {
     authListeners.add(callback);
-    const session = mapFirebaseSession(auth.currentUser);
-    callback(auth.currentUser ? "INITIAL_SESSION" : "SIGNED_OUT", session);
+    
+    auth.authStateReady().then(() => {
+      const fbUser = auth.currentUser;
+      const session = mapFirebaseSession(fbUser);
+      callback(fbUser ? "INITIAL_SESSION" : "SIGNED_OUT", session);
+    }).catch(() => {
+      callback("SIGNED_OUT", null);
+    });
 
     return {
       data: {

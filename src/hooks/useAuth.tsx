@@ -17,10 +17,40 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const CACHED_USER_KEY = "eduproof_cached_session_user";
+const CACHED_SESSION_KEY = "eduproof_cached_session";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [role, setRole] = useState<UserRole>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const cached = localStorage.getItem(CACHED_USER_KEY);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [session, setSession] = useState<Session | null>(() => {
+    try {
+      const cached = localStorage.getItem(CACHED_SESSION_KEY);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [role, setRole] = useState<UserRole>(() => {
+    try {
+      const cachedUser = localStorage.getItem(CACHED_USER_KEY);
+      if (cachedUser) {
+        const u = JSON.parse(cachedUser);
+        const cachedRole = localStorage.getItem(`eduproof_cached_role_${u.id}`);
+        return (cachedRole as UserRole) || "candidate";
+      }
+    } catch {}
+    return null;
+  });
+
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -50,6 +80,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const persistSessionCache = (u: User | null, s: Session | null, r: UserRole) => {
+    try {
+      if (u && s) {
+        localStorage.setItem(CACHED_USER_KEY, JSON.stringify(u));
+        localStorage.setItem(CACHED_SESSION_KEY, JSON.stringify(s));
+        if (r && u.id) {
+          localStorage.setItem(`eduproof_cached_role_${u.id}`, r);
+        }
+      } else {
+        localStorage.removeItem(CACHED_USER_KEY);
+        localStorage.removeItem(CACHED_SESSION_KEY);
+      }
+    } catch (e) {
+      console.error("Error persisting session cache:", e);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -59,14 +106,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession();
         if (!isMounted) return;
 
-        setSession(session as any);
-        setUser((session?.user as any) ?? null);
-
         if (session?.user) {
           const userRole = await fetchUserRole(session.user.id);
-          if (isMounted) setRole(userRole);
+          if (isMounted) {
+            setSession(session as any);
+            setUser((session.user as any));
+            setRole(userRole);
+            persistSessionCache(session.user as any, session as any, userRole);
+          }
         } else {
-          if (isMounted) setRole(null);
+          if (isMounted) {
+            setSession(null);
+            setUser(null);
+            setRole(null);
+            persistSessionCache(null, null, null);
+          }
         }
       } catch (err) {
         console.error("Auth init error:", err);
@@ -77,21 +131,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
-      setSession(session as any);
-      setUser((session?.user as any) ?? null);
+
       if (session?.user) {
-        try {
-          const userRole = await fetchUserRole(session.user.id);
-          if (isMounted) setRole(userRole);
-        } catch {
-          if (isMounted) setRole("candidate");
+        const userRole = await fetchUserRole(session.user.id);
+        if (isMounted) {
+          setSession(session as any);
+          setUser((session.user as any));
+          setRole(userRole);
+          persistSessionCache(session.user as any, session as any, userRole);
+          setLoading(false);
         }
-      } else {
-        if (isMounted) setRole(null);
+      } else if (event === "SIGNED_OUT") {
+        if (isMounted) {
+          setSession(null);
+          setUser(null);
+          setRole(null);
+          persistSessionCache(null, null, null);
+          setLoading(false);
+        }
       }
-      if (isMounted) setLoading(false);
     });
 
     return () => {
@@ -125,21 +185,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data.user) {
         setUser(data.user);
         setSession(data.session);
-        localStorage.setItem(`eduproof_cached_role_${data.user.id}`, selectedRole);
+        setRole(selectedRole);
+        persistSessionCache(data.user, data.session, selectedRole);
 
-        // Create profile document in Supabase
+        // Create profile document
         await supabase.from("profiles").insert({
           user_id: data.user.id,
           full_name: fullName,
         });
 
-        // Assign user role in Supabase
+        // Assign user role
         await supabase.from("user_roles").insert({
           user_id: data.user.id,
           role: selectedRole,
         });
-
-        setRole(selectedRole);
       }
 
       return { error: null };
@@ -163,6 +222,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(data.session);
         userRole = await fetchUserRole(data.user.id);
         setRole(userRole);
+        persistSessionCache(data.user, data.session, userRole);
       }
 
       return { error: null, role: userRole };
@@ -176,6 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setRole(null);
+    persistSessionCache(null, null, null);
     toast({
       title: "Signed out",
       description: "You have been signed out successfully.",
