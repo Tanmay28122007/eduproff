@@ -37,15 +37,23 @@ export function MessageInbox({ canMessageRoles }: MessageInboxProps) {
   const fetchConversations = async () => {
     if (!user) return;
     try {
-      // Find all unique user IDs from messages
+      // Find all unique user IDs from existing messages
       const partnerIds = new Set<string>();
       messages.forEach(m => {
         if (m.sender_id === user.id) partnerIds.add(m.receiver_id);
         if (m.receiver_id === user.id) partnerIds.add(m.sender_id);
       });
 
-      // If canMessageRoles specified, fetch users with those roles
-      if (canMessageRoles && canMessageRoles.length > 0) {
+      // If user is a recruiter, allow them to initiate contact with candidates
+      const { data: userRoleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const isRecruiter = userRoleData?.role === "recruiter";
+
+      if (isRecruiter && canMessageRoles && canMessageRoles.length > 0) {
         const { data: roleUsers } = await supabase
           .from("user_roles")
           .select("user_id, role")

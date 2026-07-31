@@ -38,8 +38,8 @@ export const NotificationsPanel = ({ certificates, isFullTab = false }: Notifica
     {
       id: "recruiter_view_1",
       type: "recruiter" as const,
-      title: "Recruiter Profile View",
-      message: "A tech recruiter from Google inspected your verified achievement portfolio.",
+      title: "Recruiter Profile Inspection",
+      message: "A tech recruiter inspected your verified achievement portfolio. (Recruiter name will reveal once they send you a direct message).",
       time: "2 hours ago",
       link: "#certificates",
       read: readIds.has("recruiter_view_1"),
