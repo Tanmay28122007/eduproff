@@ -18,7 +18,7 @@ const roles: { value: Role; label: string; description: string; icon: typeof Gra
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { user, role, loading, signUp, signIn } = useAuth();
+  const { user, role, loading: authLoading, signUp, signIn } = useAuth();
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +26,7 @@ const Auth = () => {
   const [companyName, setCompanyName] = useState("");
   const [selectedRole, setSelectedRole] = useState<Role>("candidate");
   const [showPassword, setShowPassword] = useState(false);
-  const [loadingForm, setLoadingForm] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const redirectByRole = (roleStr: string | null) => {
@@ -39,10 +39,10 @@ const Auth = () => {
   };
 
   useEffect(() => {
-    if (!loading && user) {
+    if (!authLoading && user) {
       redirectByRole(role);
     }
-  }, [user, role, loading]);
+  }, [user, role, authLoading]);
 
   const getDisplayName = (): string => {
     switch (selectedRole) {
@@ -89,7 +89,7 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    setFormLoading(true);
 
     try {
       if (mode === "signup") {
@@ -100,7 +100,7 @@ const Auth = () => {
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred");
     } finally {
-      setLoading(false);
+      setFormLoading(false);
     }
   };
 
@@ -216,8 +216,8 @@ const Auth = () => {
                 </div>
               </div>
 
-              <Button type="submit" size="lg" className="w-full" disabled={loading}>
-                {loading ? (
+              <Button type="submit" size="lg" className="w-full" disabled={formLoading}>
+                {formLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
                     {mode === "login" ? "Signing In..." : "Creating Account..."}
