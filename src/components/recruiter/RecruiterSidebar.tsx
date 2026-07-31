@@ -1,4 +1,4 @@
-import { Users, MessageSquare } from "lucide-react";
+import { Users, User, MessageSquare } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -13,6 +13,7 @@ import {
 
 const items = [
   { title: "Candidate Directory", url: "/recruiter", icon: Users },
+  { title: "My Profile", url: "/recruiter/profile", icon: User },
 ];
 
 export function RecruiterSidebar() {

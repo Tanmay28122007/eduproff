@@ -27,6 +27,7 @@ import RecruiterOverview from "./pages/recruiter/RecruiterOverview";
 import RecruiterVerify from "./pages/recruiter/RecruiterVerify";
 import RecruiterHistory from "./pages/recruiter/RecruiterHistory";
 import CandidateProfile from "./pages/recruiter/CandidateProfile";
+import RecruiterProfile from "./pages/recruiter/RecruiterProfile";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOverview from "./pages/admin/AdminOverview";
@@ -76,6 +77,7 @@ const App = () => (
                 }
               >
                 <Route index element={<RecruiterOverview />} />
+                <Route path="profile" element={<RecruiterProfile />} />
                 <Route path="candidate/:candidateId" element={<CandidateProfile />} />
               </Route>
               <Route 
