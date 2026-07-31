@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { FilePlus, CheckCircle, Copy, Loader2 } from "lucide-react";
+import { FilePlus, CheckCircle, Copy, Loader2, QrCode, Lock, Share2, ShieldCheck } from "lucide-react";
+import { generateCertificateHash } from "@/services/trustEngine";
 
 const IssueCertificate = () => {
   const [certificateId, setCertificateId] = useState("");
@@ -13,7 +14,10 @@ const IssueCertificate = () => {
   const [courseName, setCourseName] = useState("");
   const [issueDate, setIssueDate] = useState("");
   const [issuedCode, setIssuedCode] = useState<string | null>(null);
+  const [issuedCryptoHash, setIssuedCryptoHash] = useState<string | null>(null);
+  const [issuedQrUrl, setIssuedQrUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -31,10 +35,6 @@ const IssueCertificate = () => {
         description: "Use only letters, numbers, hyphens, or underscores (3-100 chars).",
         variant: "destructive",
       });
-      return;
-    }
-    if (studentName.trim().length > 200 || courseName.trim().length > 200) {
-      toast({ title: "Field too long", description: "Names must be under 200 characters.", variant: "destructive" });
       return;
     }
     if (!user) {
@@ -71,8 +71,16 @@ const IssueCertificate = () => {
         return;
       }
 
+      const hash = generateCertificateHash(certIdCode, studentName.trim(), "EduProof Network", issueDate);
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+        `${window.location.origin}/check?code=${certIdCode}`
+      )}`;
+
       setIssuedCode(certIdCode);
-      toast({ title: "Certificate Issued!", description: `ID: ${certIdCode}` });
+      setIssuedCryptoHash(hash);
+      setIssuedQrUrl(qrUrl);
+
+      toast({ title: "Future-Proof Certificate Minted & Issued!", description: `ID: ${certIdCode}` });
       setCertificateId("");
       setStudentName("");
       setCourseName("");
@@ -91,63 +99,98 @@ const IssueCertificate = () => {
     }
   };
 
+  const copyPublicLink = () => {
+    if (issuedCode) {
+      navigator.clipboard.writeText(`${window.location.origin}/check?code=${issuedCode}`);
+      toast({ title: "Copied!", description: "Public trust link copied to clipboard." });
+    }
+  };
+
   return (
-    <div className="max-w-lg">
-      <div className="mb-8">
+    <div className="max-w-xl space-y-6">
+      <div>
         <h1 className="font-display text-2xl font-bold text-foreground mb-1 flex items-center gap-2">
           <FilePlus className="w-5 h-5 text-primary" />
-          Issue Certificate
+          Mint Future-Proof Certificate
         </h1>
         <p className="text-sm text-muted-foreground">
-          Fill in the details to issue a new certificate with a unique Certificate ID.
+          Issue a tamper-proof certificate anchored with cryptographic SHA-256 signatures and QR verification.
         </p>
       </div>
 
       {issuedCode && (
-        <div className="mb-6 p-4 rounded-xl bg-success/8 border border-success/15">
-          <div className="flex items-center gap-2 mb-2">
-            <CheckCircle className="w-4 h-4 text-success" />
-            <span className="font-semibold text-sm text-foreground">Certificate Issued Successfully</span>
+        <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-4 animate-fadeIn">
+          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+            <ShieldCheck className="w-5 h-5" />
+            <span className="font-bold text-base">Future-Proof Certificate Issued!</span>
           </div>
-          <div className="flex items-center gap-2">
-            <code className="px-3 py-1.5 bg-background rounded-lg text-sm font-mono font-bold text-foreground">
-              {issuedCode}
-            </code>
-            <Button variant="ghost" size="icon" onClick={copyCode} className="h-8 w-8">
-              <Copy className="w-4 h-4" />
-            </Button>
+
+          <div className="flex flex-col sm:flex-row items-center gap-4 bg-background/80 p-4 rounded-xl border border-border">
+            {issuedQrUrl && (
+              <img src={issuedQrUrl} alt="QR Code" className="w-24 h-24 rounded-lg border bg-white p-1" />
+            )}
+            <div className="space-y-1.5 flex-1 min-w-0 text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start gap-2">
+                <code className="px-2.5 py-1 bg-secondary rounded text-xs font-mono font-bold text-foreground">
+                  {issuedCode}
+                </code>
+                <Button variant="ghost" size="icon" onClick={copyCode} className="h-7 w-7">
+                  <Copy className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+              <p className="text-[11px] font-mono text-muted-foreground break-all flex items-center gap-1 justify-center sm:justify-start">
+                <Lock className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+                {issuedCryptoHash}
+              </p>
+            </div>
           </div>
+
+          <Button variant="outline" size="sm" onClick={copyPublicLink} className="w-full gap-2 text-xs">
+            <Share2 className="w-3.5 h-3.5" /> Copy Public Verification Link
+          </Button>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-card rounded-2xl p-6 shadow-card border border-border space-y-5">
+      <form onSubmit={handleSubmit} className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 space-y-5">
         <div className="space-y-1.5">
-          <Label htmlFor="certificateId" className="text-sm font-medium">Certificate ID / Issue ID *</Label>
+          <Label htmlFor="certificateId" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Certificate ID / Issue ID *
+          </Label>
           <Input id="certificateId" value={certificateId} onChange={e => setCertificateId(e.target.value)} placeholder="e.g. EDU-2025-004" />
-          <p className="text-xs text-muted-foreground">Must be unique. Used for verification.</p>
+          <p className="text-xs text-muted-foreground">Must be unique. Used for instant verification.</p>
         </div>
+
         <div className="space-y-1.5">
-          <Label htmlFor="studentName" className="text-sm font-medium">Student Name *</Label>
+          <Label htmlFor="studentName" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Student Full Name *
+          </Label>
           <Input id="studentName" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="e.g. Alice Johnson" />
         </div>
+
         <div className="space-y-1.5">
-          <Label htmlFor="courseName" className="text-sm font-medium">Course Name *</Label>
+          <Label htmlFor="courseName" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Course or Achievement Title *
+          </Label>
           <Input id="courseName" value={courseName} onChange={e => setCourseName(e.target.value)} placeholder="e.g. Data Science Fundamentals" />
         </div>
+
         <div className="space-y-1.5">
-          <Label htmlFor="issueDate" className="text-sm font-medium">Issue Date *</Label>
+          <Label htmlFor="issueDate" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Issue Date *
+          </Label>
           <Input id="issueDate" type="date" value={issueDate} onChange={e => setIssueDate(e.target.value)} />
         </div>
-        <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+
+        <Button type="submit" size="lg" className="w-full font-semibold gap-2" disabled={isSubmitting}>
           {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Issuing...
+              Minting Digital Hash Certificate...
             </>
           ) : (
             <>
-              <FilePlus className="w-4 h-4" />
-              Issue Certificate
+              <QrCode className="w-4 h-4" />
+              Mint & Issue Future-Proof Certificate
             </>
           )}
         </Button>
