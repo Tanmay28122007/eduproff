@@ -33,7 +33,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Verified Credential Trust System. Building trust in credential-based hiring with secure verification.
+              AI-Powered Achievement Trust Platform. Verifying authentic achievements using multi-source evidence cross-validation and explainable confidence scores.
             </p>
           </div>
 

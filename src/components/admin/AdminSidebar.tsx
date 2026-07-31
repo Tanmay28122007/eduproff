@@ -20,7 +20,6 @@ const items = [
   { title: "Overview", url: "/admin", icon: LayoutDashboard },
   { title: "Candidates", url: "/admin/candidates", icon: Users },
   { title: "Recruiters", url: "/admin/recruiters", icon: Search },
-  { title: "Institutions", url: "/admin/institutions", icon: Building2 },
   { title: "Certificates", url: "/admin/certificates", icon: Award },
   { title: "Activity Logs", url: "/admin/activity", icon: Activity },
   { title: "Flagged Reports", url: "/admin/flagged", icon: Flag },

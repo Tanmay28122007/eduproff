@@ -10,48 +10,49 @@ import {
   ArrowRight,
   CheckCircle,
   Building2,
-  Globe
+  Globe,
+  Sparkles
 } from "lucide-react";
 
 const values = [
   {
     icon: Shield,
     title: "Trust First",
-    description: "Every decision we make prioritizes building and maintaining trust in the credential ecosystem.",
+    description: "Every decision we make prioritizes building and maintaining trust through multi-source evidence.",
   },
   {
     icon: Lightbulb,
-    title: "Transparency",
-    description: "Our verification process is fully transparent. Users always understand why a decision was made.",
+    title: "Explainable AI",
+    description: "Our verification process provides transparent signals. Users always understand why a score was calculated.",
   },
   {
     icon: TrendingUp,
-    title: "Scalability",
-    description: "Built to scale from individual verification to enterprise-level credential management.",
+    title: "Institution Independent",
+    description: "Works seamlessly even if an issuing institution or organizer has never integrated with EduProof.",
   },
   {
     icon: Users,
-    title: "Accessibility",
-    description: "Making credential verification accessible to everyone, regardless of technical expertise.",
+    title: "Student Centric",
+    description: "Empowers students to verify and showcase their authentic achievements to recruiters.",
   },
 ];
 
 const fintechConnections = [
   {
-    title: "KYC-Inspired Verification",
-    description: "Our identity validation process is inspired by financial Know Your Customer (KYC) protocols, ensuring only legitimate users access the system.",
+    title: "Multi-Source Evidence Cross-Validation",
+    description: "Cross-checks emails, GitHub code commits, winner lists, and public registries to verify genuine achievement.",
   },
   {
-    title: "Risk-Based Scoring",
-    description: "Similar to credit scoring in finance, our trust scores provide a quantifiable measure of credential reliability.",
+    title: "AI Forensic Tamper Detection",
+    description: "Scans font rendering, metadata structures, and compression artifacts to catch edited or forged PDFs.",
   },
   {
-    title: "Automated Trust Signals",
-    description: "Like fraud detection in banking, our automated checks identify inconsistencies and potential risks in real-time.",
+    title: "0–100% Verification Confidence Score",
+    description: "Outputs a transparent confidence score backed by 6 weighted trust pillars rather than binary pass/fail labels.",
   },
   {
-    title: "Audit Trail & Compliance",
-    description: "Every verification is logged with a complete audit trail, supporting compliance and accountability requirements.",
+    title: "Audit Trail & Cryptographic Anchors",
+    description: "Generates SHA-256 achievement hashes and shareable public trust links for instant recruiter verification.",
   },
 ];
 
@@ -63,39 +64,36 @@ const About = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              <Target className="w-4 h-4" />
-              Our Mission
+              <Sparkles className="w-4 h-4" />
+              Our Core Philosophy
             </div>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
               About EduProof
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              Building the infrastructure for trusted credentials in education and employment.
+              An AI-powered Achievement Trust Platform that verifies achievements using multiple independent evidence sources and generates an explainable Verification Confidence Score.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Mission Statement */}
+      {/* Vision */}
       <section className="py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
                 <h2 className="font-display text-3xl font-bold text-foreground mb-6">
-                  Our Vision
+                  Our Philosophy
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                  In a world where credentials drive opportunities, trust is everything. 
-                  EduProof was created to solve a critical problem: how do we know if a credential is genuine?
+                  Certificates can easily be edited using Photoshop or AI tools. Requiring institutions to join a platform before credentials can be verified creates a major adoption barrier.
                 </p>
                 <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                  We're building a FinTech-grade trust system for the education sector—applying the same 
-                  rigorous verification standards used in financial services to academic and professional credentials.
+                  Instead of asking <em>"Is this PDF authentic?"</em>, EduProof asks: <strong>"Did this person genuinely earn this achievement?"</strong>
                 </p>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Our goal is simple: eliminate credential fraud and create a more trustworthy 
-                  ecosystem for students, institutions, and employers alike.
+                  By evaluating achievements across AI forensics, OCR logic, code commits, winner lists, and public registries, EduProof provides immediate value independently of educational institutions.
                 </p>
               </div>
               <div className="bg-card rounded-2xl p-8 shadow-medium border border-border/50">
@@ -103,24 +101,24 @@ const About = () => {
                   <Shield className="w-8 h-8 text-primary-foreground" />
                 </div>
                 <h3 className="font-display text-xl font-semibold text-foreground mb-4">
-                  The Trust Problem
+                  Why Multi-Signal Trust Matters
                 </h3>
                 <ul className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span className="text-muted-foreground">1 in 3 resumes contain inaccurate credential information</span>
+                    <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted-foreground">PDFs can be modified in minutes without detection</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span className="text-muted-foreground">Manual verification takes days or weeks</span>
+                    <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted-foreground">Institutional onboarding takes months or years</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span className="text-muted-foreground">Employers lack reliable verification tools</span>
+                    <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted-foreground">Cross-evidence (repos, emails, winner lists) provides proof</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
-                    <span className="text-muted-foreground">Students struggle to prove authentic achievements</span>
+                    <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-muted-foreground">Explainable scores give recruiters actionable confidence</span>
                   </li>
                 </ul>
               </div>
@@ -129,15 +127,15 @@ const About = () => {
         </div>
       </section>
 
-      {/* FinTech Connection */}
+      {/* Tech Connections */}
       <section className="py-24 bg-secondary/30">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              The FinTech Connection
+              Multi-Layer Trust Engine Features
             </h2>
             <p className="text-muted-foreground text-lg">
-              How financial trust systems inspire our approach to credential verification.
+              Combining 6 independent pillars into an explainable verification confidence score.
             </p>
           </div>
 
@@ -155,7 +153,7 @@ const About = () => {
                     <h3 className="font-display text-lg font-semibold text-foreground mb-2">
                       {item.title}
                     </h3>
-                    <p className="text-muted-foreground">
+                    <p className="text-muted-foreground text-sm">
                       {item.description}
                     </p>
                   </div>
@@ -171,10 +169,10 @@ const About = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Our Values
+              Our Core Values
             </h2>
             <p className="text-muted-foreground text-lg">
-              The principles that guide everything we build.
+              Guiding principles behind the EduProof Trust Engine.
             </p>
           </div>
 
@@ -199,53 +197,20 @@ const About = () => {
         </div>
       </section>
 
-      {/* Global Impact */}
-      <section className="py-24 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="w-20 h-20 rounded-2xl gradient-hero flex items-center justify-center mx-auto mb-8 shadow-glow-primary">
-              <Globe className="w-10 h-10 text-primary-foreground" />
-            </div>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Building Global Trust
-            </h2>
-            <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-              Our vision extends beyond individual verification. We're building the infrastructure 
-              for a global credential trust network that connects students, institutions, and 
-              employers worldwide.
-            </p>
-            <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
-              <div>
-                <div className="font-display text-4xl font-bold text-primary">10K+</div>
-                <div className="text-sm text-muted-foreground">Credentials Verified</div>
-              </div>
-              <div>
-                <div className="font-display text-4xl font-bold text-primary">50+</div>
-                <div className="text-sm text-muted-foreground">Issuers Recognized</div>
-              </div>
-              <div>
-                <div className="font-display text-4xl font-bold text-primary">99.9%</div>
-                <div className="text-sm text-muted-foreground">Accuracy Rate</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
-      <section className="py-24">
+      <section className="py-24 bg-secondary/30">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Join the Trust Revolution
+              Start Verifying Achievements Today
             </h2>
             <p className="text-muted-foreground text-lg mb-8">
-              Whether you're a student, institution, or employer—we're here to help you build trust.
+              Verify achievements with multi-source evidence and build a verified profile recruiters trust.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="xl" asChild>
-                <Link to="/auth">
-                  Get Started
+                <Link to="/verify">
+                  Verify Achievement
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </Button>

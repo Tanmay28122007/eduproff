@@ -5,18 +5,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const AdminOverview = () => {
-  const [stats, setStats] = useState({ users: 0, certificates: 0, verifications: 0, institutions: 0 });
+  const [stats, setStats] = useState({ users: 0, certificates: 0, verifications: 0, signals: 0 });
   const [monthlyData, setMonthlyData] = useState<{ month: string; users: number; certificates: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [profilesRes, certsRes, logsRes, instRes] = await Promise.all([
+        const [profilesRes, certsRes, logsRes] = await Promise.all([
           supabase.from("profiles").select("created_at"),
           supabase.from("certificates").select("created_at"),
           supabase.from("verification_logs").select("*", { count: "exact", head: true }),
-          supabase.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "institution"),
         ]);
 
         const profiles = profilesRes.data || [];
@@ -26,7 +25,7 @@ const AdminOverview = () => {
           users: profiles.length,
           certificates: certs.length,
           verifications: logsRes.count || 0,
-          institutions: instRes.count || 0,
+          signals: (logsRes.count || 0) * 6,
         });
 
         const months: Record<string, { users: number; certificates: number }> = {};
@@ -70,9 +69,9 @@ const AdminOverview = () => {
 
   const statCards = [
     { title: "Total Users", value: stats.users, icon: Users, color: "text-blue-600" },
-    { title: "Certificates", value: stats.certificates, icon: Award, color: "text-emerald-600" },
+    { title: "Achievements", value: stats.certificates, icon: Award, color: "text-emerald-600" },
     { title: "Verifications", value: stats.verifications, icon: Shield, color: "text-purple-600" },
-    { title: "Institutions", value: stats.institutions, icon: Activity, color: "text-orange-600" },
+    { title: "Trust Signals Analyzed", value: stats.signals, icon: Activity, color: "text-amber-600" },
   ];
 
   if (loading) {

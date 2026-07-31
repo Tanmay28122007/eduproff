@@ -9,20 +9,20 @@ const contactInfo = [
   {
     icon: Mail,
     title: "Email Us",
-    value: "support@eduproof.com",
-    description: "We'll respond within 24 hours",
+    value: "coming soon",
+    description: "Support desk launched soon",
   },
   {
     icon: Phone,
     title: "Call Us",
-    value: "+1 (555) 123-4567",
-    description: "Mon-Fri, 9am-6pm EST",
+    value: "coming soon",
+    description: "Helpline available soon",
   },
   {
     icon: MapPin,
     title: "Visit Us",
-    value: "123 Education Lane",
-    description: "San Francisco, CA 94102",
+    value: "location will be revealed soon",
+    description: "Headquarters location coming soon",
   },
 ];
 

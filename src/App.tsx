@@ -22,12 +22,6 @@ import About from "./pages/About";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
-import InstitutionDashboard from "./pages/institution/InstitutionDashboard";
-import InstitutionOverview from "./pages/institution/InstitutionOverview";
-import IssueCertificate from "./pages/institution/IssueCertificate";
-import IssuedCertificates from "./pages/institution/IssuedCertificates";
-import VerificationLogs from "./pages/institution/VerificationLogs";
-import InstitutionAnalytics from "./pages/institution/InstitutionAnalytics";
 import RecruiterDashboard from "./pages/recruiter/RecruiterDashboard";
 import RecruiterOverview from "./pages/recruiter/RecruiterOverview";
 import RecruiterVerify from "./pages/recruiter/RecruiterVerify";
@@ -40,7 +34,6 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminCandidates from "./pages/admin/AdminCandidates";
 import AdminRecruiters from "./pages/admin/AdminRecruiters";
 import AdminCertificates from "./pages/admin/AdminCertificates";
-import AdminInstitutions from "./pages/admin/AdminInstitutions";
 import AdminActivity from "./pages/admin/AdminActivity";
 import AdminFlaggedReports from "./pages/admin/AdminFlaggedReports";
 import AdminMessaging from "./pages/admin/AdminMessaging";
@@ -117,20 +110,6 @@ const App = () => (
                   </ProtectedRoute>
                 } 
               />
-              <Route
-                path="/institution"
-                element={
-                  <ProtectedRoute allowedRoles={["institution"]}>
-                    <InstitutionDashboard />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<InstitutionOverview />} />
-                <Route path="issue" element={<IssueCertificate />} />
-                <Route path="certificates" element={<IssuedCertificates />} />
-                <Route path="logs" element={<VerificationLogs />} />
-                <Route path="analytics" element={<InstitutionAnalytics />} />
-              </Route>
               <Route path="/support" element={<Support />} />
               <Route path="/careers" element={<Careers />} />
               <Route path="/check" element={<PublicVerify />} />
@@ -148,7 +127,6 @@ const App = () => (
                 <Route path="candidates" element={<AdminCandidates />} />
                 <Route path="recruiters" element={<AdminRecruiters />} />
                 <Route path="certificates" element={<AdminCertificates />} />
-                <Route path="institutions" element={<AdminInstitutions />} />
                 <Route path="activity" element={<AdminActivity />} />
                 <Route path="flagged" element={<AdminFlaggedReports />} />
                 <Route path="messaging" element={<AdminMessaging />} />

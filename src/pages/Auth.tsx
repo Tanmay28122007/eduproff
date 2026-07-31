@@ -9,12 +9,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Shield, Eye, EyeOff, Loader2, GraduationCap, Building2, Search } from "lucide-react";
 
 type AuthMode = "login" | "signup";
-type Role = "candidate" | "recruiter" | "institution";
+type Role = "candidate" | "recruiter";
 
 const roles: { value: Role; label: string; description: string; icon: typeof GraduationCap }[] = [
-  { value: "candidate", label: "Candidate", description: "Upload & verify certificates", icon: GraduationCap },
-  { value: "recruiter", label: "Recruiter", description: "Verify candidate credentials", icon: Search },
-  { value: "institution", label: "Institution", description: "Issue & manage certificates", icon: Building2 },
+  { value: "candidate", label: "Student / Candidate", description: "Upload & verify achievements", icon: GraduationCap },
+  { value: "recruiter", label: "Recruiter / Verifier", description: "Screen candidate achievements", icon: Search },
 ];
 
 const Auth = () => {
@@ -25,7 +24,6 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [companyName, setCompanyName] = useState("");
-  const [institutionName, setInstitutionName] = useState("");
   const [selectedRole, setSelectedRole] = useState<Role>("candidate");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,7 +33,6 @@ const Auth = () => {
     switch (roleStr) {
       case "candidate": navigate("/student"); break;
       case "recruiter": navigate("/recruiter"); break;
-      case "institution": navigate("/institution"); break;
       case "admin": navigate("/admin"); break;
       default: navigate("/student"); break;
     }
@@ -45,7 +42,6 @@ const Auth = () => {
     switch (selectedRole) {
       case "candidate": return fullName;
       case "recruiter": return fullName || companyName;
-      case "institution": return institutionName;
     }
   };
 
@@ -193,22 +189,9 @@ const Auth = () => {
               )}
 
               {mode === "signup" && selectedRole === "recruiter" && (
-                <>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="companyName" className="text-sm font-medium">Company Name</Label>
-                    <Input id="companyName" type="text" placeholder="Enter company name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="recruiterName" className="text-sm font-medium">Recruiter Name</Label>
-                    <Input id="recruiterName" type="text" placeholder="Enter your name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-                  </div>
-                </>
-              )}
-
-              {mode === "signup" && selectedRole === "institution" && (
                 <div className="space-y-1.5">
-                  <Label htmlFor="institutionName" className="text-sm font-medium">Institution Name</Label>
-                  <Input id="institutionName" type="text" placeholder="Enter institution name" value={institutionName} onChange={(e) => setInstitutionName(e.target.value)} required />
+                  <Label htmlFor="companyName" className="text-sm font-medium">Company Name</Label>
+                  <Input id="companyName" type="text" placeholder="Enter company name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required />
                 </div>
               )}
 

@@ -168,7 +168,6 @@ const AdminMessaging = () => {
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="candidate">Candidates</SelectItem>
                 <SelectItem value="recruiter">Recruiters</SelectItem>
-                <SelectItem value="institution">Institutions</SelectItem>
               </SelectContent>
             </Select>
           </div>

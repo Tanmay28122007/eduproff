@@ -12,7 +12,7 @@ interface Msg {
 
 const AdminChatbot = () => {
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: "Hello! I'm your admin assistant. I can help you navigate platform statistics, user management, and institution records. What would you like to do?" },
+    { role: "assistant", content: "Hello! I'm your admin assistant. I can help you inspect platform statistics, user management, and achievement trust logs. What would you like to do?" },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -31,17 +31,15 @@ const AdminChatbot = () => {
     setIsLoading(true);
 
     setTimeout(() => {
-      let reply = "I can assist you with managing users, reviewing certificate verification activity, or sending messages to registered accounts in the admin portal.";
+      let reply = "I can assist you with managing candidate & recruiter accounts, inspecting achievement trust logs, or sending direct admin notifications.";
       const lower = userQuery.toLowerCase();
 
       if (lower.includes("user") || lower.includes("account")) {
-        reply = "You can manage all registered users, roles, and profiles in the **Users** tab of the Admin Panel.";
-      } else if (lower.includes("institution") || lower.includes("issue")) {
-        reply = "To review or flag institutional accounts, head over to the **Institutions** tab in the Admin section.";
+        reply = "You can manage all registered candidate and recruiter accounts in the **Users** tab.";
       } else if (lower.includes("recruiter") || lower.includes("verify")) {
-        reply = "Recruiter verifications and account activity can be inspected under **Recruiters** and **Verification Logs**.";
+        reply = "Recruiter accounts and candidate screening activity can be inspected under **Recruiters** and **Activity Logs**.";
       } else if (lower.includes("message") || lower.includes("send")) {
-        reply = "You can send direct messages to candidates, recruiters, or institutions in the **Messaging** section.";
+        reply = "You can send direct messages to candidates or recruiters in the **Messaging** section.";
       }
 
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);

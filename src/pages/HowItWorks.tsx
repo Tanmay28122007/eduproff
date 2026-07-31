@@ -4,63 +4,62 @@ import { Link } from "react-router-dom";
 import { 
   UserCheck, 
   FileText, 
-  Search, 
   Gauge,
   ArrowRight,
   Shield,
   CheckCircle,
   AlertTriangle,
   XCircle,
-  Upload,
-  FileCheck,
-  Copy,
-  Database
+  Cpu,
+  Globe,
+  Lock,
+  Sparkles
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 const workflowSteps = [
   {
     step: 1,
-    icon: UserCheck,
-    title: "Identity & KYC Validation",
-    description: "Before any verification begins, users must authenticate and verify their identity. This ensures that only legitimate users can submit credentials for verification.",
+    icon: FileText,
+    title: "1. Upload Achievement & Evidence Files",
+    description: "Upload your certificate PDF or image along with supporting evidence—event registration emails, winner announcements, GitHub repositories, or team lists.",
     details: [
-      "Secure email/password authentication",
-      "Role-based access (Candidate or Recruiter)",
-      "Session management and security tokens",
+      "Accepts PDF, PNG, JPG files up to 15MB",
+      "Multi-evidence URL attachments (GitHub, LinkedIn, Portfolio)",
+      "Independent of institution onboarding or pre-partnerships",
     ],
   },
   {
     step: 2,
-    icon: FileText,
-    title: "Certificate Code & Document Upload",
-    description: "Users upload their certificate PDF along with the certificate title and issuing organization. Our system accepts only PDF files to ensure document integrity.",
+    icon: Cpu,
+    title: "2. AI Tamper Forensic & OCR Scan",
+    description: "Our AI engine inspects raw layout structures, font table consistency, metadata headers, and OCR text to flag edited elements or spliced signatures.",
     details: [
-      "PDF-only upload (no image manipulation)",
-      "Certificate title and issuer metadata",
-      "Secure file storage in encrypted buckets",
+      "Detects font alignment & compression anomalies",
+      "Validates dates, issuer names, and text logic",
+      "Calculates an AI Tamper Probability Score",
     ],
   },
   {
     step: 3,
-    icon: Search,
-    title: "Automated Verification Checks",
-    description: "Our AI-powered system performs multiple verification checks to assess the authenticity of the credential.",
+    icon: Globe,
+    title: "3. Public Web & Registry Cross-Matching",
+    description: "The system searches independent public web sources—GitHub code commits, Kaggle leaderboards, university winner lists, and publication registries.",
     details: [
-      "User/Candidate ID Detection - Checks for Student ID, Certificate ID, or similar identifiers",
-      "Duplicate Detection - Scans database for previously submitted credentials",
-      "Issuer Recognition - Validates the issuing organization",
+      "Cross-verifies commit dates against event timelines",
+      "Indexes public winner listings and organizer records",
+      "Verifies digital QR codes and SHA-256 hashes",
     ],
   },
   {
     step: 4,
     icon: Gauge,
-    title: "Trust Score & Verification Output",
-    description: "The system generates a transparent trust score with detailed explanations for each check, enabling informed decision-making.",
+    title: "4. Explainable Verification Trust Report",
+    description: "Generates an overall 0–100% Verification Confidence Score accompanied by transparent positive signals (✔) and risk alerts (⚠).",
     details: [
-      "Weighted trust score (0-100%)",
-      "Individual check results with pass/fail status",
-      "Clear explanation of verification outcome",
+      "Weighted 6-pillar trust score composition",
+      "Clear explanation of why score increased or decreased",
+      "Shareable public trust link for recruiters & portfolio",
     ],
   },
 ];
@@ -68,38 +67,41 @@ const workflowSteps = [
 const verificationExamples = [
   {
     status: "verified",
-    title: "Verified",
-    description: "Certificate passed all checks",
+    title: "Exceptional Trust (96%)",
+    description: "Clean forensics, GitHub commits, & public web match found",
     color: "success",
     icon: CheckCircle,
-    trustScore: 95,
+    trustScore: 96,
     checks: [
-      { name: "User/Candidate ID", passed: true },
-      { name: "Duplicate Check", passed: true },
+      { name: "AI Forensic Tamper Scan", passed: true },
+      { name: "Public Web Match", passed: true },
+      { name: "Cross-Evidence Alignment", passed: true },
     ],
   },
   {
     status: "partial",
-    title: "Partially Verified",
-    description: "Some concerns detected",
+    title: "Moderate Confidence (68%)",
+    description: "Document readable, missing secondary evidence links",
     color: "accent",
     icon: AlertTriangle,
-    trustScore: 65,
+    trustScore: 68,
     checks: [
-      { name: "User/Candidate ID", passed: true },
-      { name: "Duplicate Check", passed: false },
+      { name: "AI Forensic Tamper Scan", passed: true },
+      { name: "Public Web Match", passed: false },
+      { name: "Cross-Evidence Alignment", passed: true },
     ],
   },
   {
     status: "high-risk",
-    title: "High Risk",
-    description: "Failed primary verification",
+    title: "High Risk (25%)",
+    description: "Font anomalies or unverified metadata detected",
     color: "destructive",
     icon: XCircle,
-    trustScore: 15,
+    trustScore: 25,
     checks: [
-      { name: "User/Candidate ID", passed: false },
-      { name: "Duplicate Check", passed: false },
+      { name: "AI Forensic Tamper Scan", passed: false },
+      { name: "Public Web Match", passed: false },
+      { name: "Cross-Evidence Alignment", passed: false },
     ],
   },
 ];
@@ -112,15 +114,14 @@ const HowItWorks = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              <Shield className="w-4 h-4" />
-              Transparent Verification Process
+              <Sparkles className="w-4 h-4" />
+              Multi-Layer Trust Engine Architecture
             </div>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
               How EduProof Works
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              A four-step verification process inspired by financial trust systems and KYC protocols. 
-              Every check is transparent, every result is explainable.
+              Never rely on editable PDFs alone. EduProof verifies authentic achievements across 6 independent trust pillars to calculate an explainable Confidence Score.
             </p>
           </div>
         </div>
@@ -162,7 +163,7 @@ const HowItWorks = () => {
                       <ul className="space-y-3">
                         {step.details.map((detail, i) => (
                           <li key={i} className="flex items-start gap-3">
-                            <CheckCircle className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
+                            <CheckCircle className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                             <span className="text-foreground">{detail}</span>
                           </li>
                         ))}
@@ -181,10 +182,10 @@ const HowItWorks = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Verification Outcomes
+              Explainable Verification Ratings
             </h2>
             <p className="text-muted-foreground text-lg">
-              Our system provides three possible outcomes, each with transparent reasoning.
+              Every score comes with transparent reasons, evidence counts, and positive/risk signals.
             </p>
           </div>
 
@@ -195,13 +196,13 @@ const HowItWorks = () => {
                 className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
               >
                 <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 ${
-                  example.color === 'success' ? 'bg-success/10' :
-                  example.color === 'accent' ? 'bg-accent/10' :
+                  example.color === 'success' ? 'bg-emerald-500/10' :
+                  example.color === 'accent' ? 'bg-amber-500/10' :
                   'bg-destructive/10'
                 }`}>
                   <example.icon className={`w-7 h-7 ${
-                    example.color === 'success' ? 'text-success' :
-                    example.color === 'accent' ? 'text-accent' :
+                    example.color === 'success' ? 'text-emerald-500' :
+                    example.color === 'accent' ? 'text-amber-500' :
                     'text-destructive'
                   }`} />
                 </div>
@@ -215,10 +216,10 @@ const HowItWorks = () => {
 
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">Trust Score</span>
+                    <span className="text-sm text-muted-foreground">Confidence Score</span>
                     <span className={`font-bold ${
-                      example.color === 'success' ? 'text-success' :
-                      example.color === 'accent' ? 'text-accent' :
+                      example.color === 'success' ? 'text-emerald-500' :
+                      example.color === 'accent' ? 'text-amber-500' :
                       'text-destructive'
                     }`}>{example.trustScore}%</span>
                   </div>
@@ -230,7 +231,7 @@ const HowItWorks = () => {
                     <div key={check.name} className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">{check.name}</span>
                       {check.passed ? (
-                        <span className="text-success font-medium">✓</span>
+                        <span className="text-emerald-500 font-medium">✓</span>
                       ) : (
                         <span className="text-destructive font-medium">✗</span>
                       )}
@@ -248,20 +249,17 @@ const HowItWorks = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Ready to Verify Your Credentials?
+              Ready to Build Your Verified Achievement Profile?
             </h2>
             <p className="text-muted-foreground text-lg mb-8">
-              Experience our transparent verification process firsthand.
+              Analyze your achievements with multi-source evidence and showcase verified confidence scores.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="xl" asChild>
-                <Link to="/auth">
-                  Get Started
+                <Link to="/verify">
+                  Verify Achievement Now
                   <ArrowRight className="w-5 h-5" />
                 </Link>
-              </Button>
-              <Button variant="outline" size="xl" asChild>
-                <Link to="/demo">View Demo</Link>
               </Button>
             </div>
           </div>

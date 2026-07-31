@@ -23,21 +23,14 @@ const publicLinks = [
 const candidateLinks = [
   { href: "/", label: "Home" },
   { href: "/student", label: "Dashboard" },
-  { href: "/verify", label: "Verify Certificate" },
+  { href: "/verify", label: "Verification Hub" },
   { href: "/how-it-works", label: "How It Works" },
 ];
 
 const recruiterLinks = [
   { href: "/", label: "Home" },
-  { href: "/recruiter", label: "Dashboard" },
+  { href: "/recruiter", label: "Candidate Directory" },
   { href: "/how-it-works", label: "How It Works" },
-];
-
-const institutionLinks = [
-  { href: "/", label: "Home" },
-  { href: "/institution", label: "Dashboard" },
-  { href: "/institution/issue", label: "Issue Certificate" },
-  { href: "/institution/certificates", label: "Issued Certs" },
 ];
 
 export function Navbar() {
@@ -47,7 +40,7 @@ export function Navbar() {
   const { user, role, signOut } = useAuth();
 
   const navLinks = user 
-    ? (role === "recruiter" ? recruiterLinks : role === "institution" ? institutionLinks : candidateLinks)
+    ? (role === "recruiter" ? recruiterLinks : candidateLinks)
     : publicLinks;
 
   const handleSignOut = async () => {
@@ -100,7 +93,7 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem asChild>
-                    <Link to={role === "recruiter" ? "/recruiter" : role === "institution" ? "/institution" : "/student"} className="cursor-pointer">
+                    <Link to={role === "recruiter" ? "/recruiter" : "/student"} className="cursor-pointer">
                       <User className="w-4 h-4 mr-2" />
                       Dashboard
                     </Link>
