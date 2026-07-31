@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Layout } from "@/components/layout/Layout";
-import { Upload, FileCheck, FileText, Award, Loader2, Mail, CheckCircle, AlertCircle, Hash } from "lucide-react";
+import { Upload, FileCheck, FileText, Award, Loader2, Mail, CheckCircle, AlertCircle, Hash, Bell, MessageSquare, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCertificates } from "@/hooks/useCertificates";
 import { CertificateCard } from "@/components/student/CertificateCard";
@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 const Student = () => {
   const { user } = useAuth();
   const { certificates, loading, deleteCertificate } = useCertificates();
+  const [activeTab, setActiveTab] = useState<"certificates" | "notifications" | "messages" | "settings">("certificates");
   const [myCertificateId, setMyCertificateId] = useState("");
   const userName = user?.email?.split("@")[0] || "Achiever";
   const isEmailVerified = !!user?.email_confirmed_at;
@@ -85,19 +86,19 @@ const Student = () => {
       )}
 
       {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-b from-secondary/50 to-background">
+      <section className="py-12 bg-gradient-to-b from-secondary/50 to-background">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
             <div className="max-w-2xl">
               <div className="flex flex-wrap items-center gap-3 mb-4">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 text-success text-sm font-medium">
                   <Award className="w-4 h-4" />
-                  Candidate Dashboard
+                  Candidate Workspace
                 </div>
                 
                 {/* Email Status Badge */}
                 {isEmailVerified ? (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success/10 text-success text-xs font-medium">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-medium">
                     <CheckCircle className="w-3.5 h-3.5" />
                     Email Verified
                   </div>
@@ -109,163 +110,188 @@ const Student = () => {
                 )}
               </div>
               
-              <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+              <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
                 Hello, {userName}! 👋
               </h1>
-              <p className="text-lg text-muted-foreground">
-                Your verified certificates await ✨ See your achievements and generate your CV. Your potential is ready to shine!
+              <p className="text-muted-foreground leading-relaxed">
+                Manage your verified achievements, track live trust signals, and communicate with recruiters.
               </p>
             </div>
 
-            {/* Notifications Panel */}
-            <NotificationsPanel certificates={certificates} />
-          </div>
-        </div>
-      </section>
-
-      {/* Action Buttons */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid sm:grid-cols-3 gap-6">
-            <Link
-              to="/verify"
-              className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group"
-            >
-              <div className="w-14 h-14 rounded-xl gradient-hero flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Upload className="w-7 h-7 text-primary-foreground" />
-              </div>
-              <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                Upload Certificate
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                Add new certificates for instant verification
-              </p>
-            </Link>
-
-            <Link
-              to="#certificates"
-              className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group"
-            >
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <FileCheck className="w-7 h-7 text-primary" />
-              </div>
-              <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                View Verified Certificates
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                Browse all your verified credentials
-              </p>
-            </Link>
-
-            <Link
-              to="/generate-cv"
-              className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-accent/30 transition-all group"
-            >
-              <div className="w-14 h-14 rounded-xl gradient-accent flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <FileText className="w-7 h-7 text-accent-foreground" />
-              </div>
-              <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                Generate CV
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                Create a professional CV from your achievements
-              </p>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Role Preference & Certificate ID */}
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-6">
-            <RolePreferenceSelector />
-            <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
-              <h3 className="font-display text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
-                <Hash className="w-5 h-5 text-primary" />
-                My Certificate ID
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Enter the Certificate ID provided by your institution, then verify it.
-              </p>
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <Label htmlFor="myCertificateId" className="sr-only">Certificate ID</Label>
-                  <Input
-                    id="myCertificateId"
-                    value={myCertificateId}
-                    onChange={e => setMyCertificateId(e.target.value)}
-                    placeholder="e.g. EDU-2025-001"
-                  />
-                </div>
-                <Button variant="hero" asChild>
-                  <Link to={`/verify`}>
-                    Verify
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Messages */}
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <MessageInbox canMessageRoles={["recruiter", "institution"]} />
-        </div>
-      </section>
-
-      {/* Verified Certificates */}
-      <section id="certificates" className="py-12 pb-24">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                Your Certificates
-              </h2>
-              <p className="text-muted-foreground">
-                All your credentials in one place ({verifiedCertificates.length} verified)
-              </p>
-            </div>
-            <Button variant="hero" asChild>
-              <Link to="/verify">
-                <Upload className="w-4 h-4" />
-                Add New
-              </Link>
-            </Button>
-          </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : certificates.length > 0 ? (
-            <div className="grid gap-4">
-              {certificates.map((cert) => (
-                <CertificateCard 
-                  key={cert.id} 
-                  certificate={cert} 
-                  onDelete={handleDelete}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16 bg-secondary/30 rounded-2xl">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                <FileCheck className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-                No certificates yet
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Upload your first certificate to get started!
-              </p>
-              <Button variant="hero" asChild>
-                <Link to="/verify">Upload Certificate</Link>
+            {/* Quick Actions */}
+            <div className="flex items-center gap-3">
+              <Button variant="hero" size="lg" asChild className="gap-2">
+                <Link to="/verify">
+                  <Upload className="w-4 h-4" />
+                  Verify New Achievement
+                </Link>
               </Button>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Navigation Tabs */}
+      <section className="border-b border-border bg-card sticky top-16 z-30 shadow-xs">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center gap-2 overflow-x-auto py-2">
+            <Button
+              variant={activeTab === "certificates" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("certificates")}
+              className="gap-2 rounded-xl text-xs font-semibold"
+            >
+              <FileCheck className="w-4 h-4" />
+              My Achievements ({certificates.length})
+            </Button>
+
+            <Button
+              variant={activeTab === "notifications" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("notifications")}
+              className="gap-2 rounded-xl text-xs font-semibold relative"
+            >
+              <Bell className="w-4 h-4" />
+              Notifications
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            </Button>
+
+            <Button
+              variant={activeTab === "messages" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("messages")}
+              className="gap-2 rounded-xl text-xs font-semibold"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Recruiter Messages
+            </Button>
+
+            <Button
+              variant={activeTab === "settings" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("settings")}
+              className="gap-2 rounded-xl text-xs font-semibold"
+            >
+              <Settings className="w-4 h-4" />
+              Preferences & ID
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Tab Contents */}
+      <section className="py-12 pb-24 min-h-[500px]">
+        <div className="container mx-auto px-4">
+
+          {/* TAB 1: CERTIFICATES & ACHIEVEMENTS */}
+          {activeTab === "certificates" && (
+            <div className="space-y-8">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-1">
+                    Verified Achievements & Portfolio
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    All your multi-signal verified achievements ({verifiedCertificates.length} verified)
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/generate-cv">
+                      <FileText className="w-4 h-4 mr-1.5" />
+                      Generate CV
+                    </Link>
+                  </Button>
+                  <Button variant="hero" size="sm" asChild>
+                    <Link to="/verify">
+                      <Upload className="w-4 h-4 mr-1.5" />
+                      Upload New
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : certificates.length > 0 ? (
+                <div className="grid gap-4">
+                  {certificates.map((cert) => (
+                    <CertificateCard 
+                      key={cert.id} 
+                      certificate={cert} 
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 bg-secondary/30 rounded-2xl border border-border/50 space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
+                    <FileCheck className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-xl font-semibold text-foreground mb-1">
+                      No achievements uploaded yet
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Upload your first certificate or project evidence to generate an explainable trust score!
+                    </p>
+                  </div>
+                  <Button variant="hero" asChild>
+                    <Link to="/verify">Upload & Verify Achievement</Link>
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
+
+          {/* TAB 2: NOTIFICATIONS TAB */}
+          {activeTab === "notifications" && (
+            <div>
+              <NotificationsPanel certificates={certificates} isFullTab={true} />
+            </div>
+          )}
+
+          {/* TAB 3: RECRUITER MESSAGES */}
+          {activeTab === "messages" && (
+            <div>
+              <MessageInbox canMessageRoles={["recruiter"]} />
+            </div>
+          )}
+
+          {/* TAB 4: PREFERENCES & SETTINGS */}
+          {activeTab === "settings" && (
+            <div className="grid md:grid-cols-2 gap-6">
+              <RolePreferenceSelector />
+              <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+                <h3 className="font-display text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
+                  <Hash className="w-5 h-5 text-primary" />
+                  Certificate & Achievement ID Lookup
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Enter an Achievement ID or code to view its multi-signal Trust Analysis Report.
+                </p>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <Label htmlFor="myCertificateId" className="sr-only">Certificate ID</Label>
+                    <Input
+                      id="myCertificateId"
+                      value={myCertificateId}
+                      onChange={e => setMyCertificateId(e.target.value)}
+                      placeholder="e.g. EDU-2025-001"
+                    />
+                  </div>
+                  <Button variant="hero" asChild>
+                    <Link to={`/check?code=${myCertificateId || 'EDU-2025-001'}`}>
+                      Inspect Report
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </section>
     </Layout>
