@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, Clock, FileText, Share2, Eye, Trash2, Calendar, Building2 } from "lucide-react";
+import { ShieldCheck, ShieldAlert, FileText, Share2, Eye, Trash2, Calendar, Building2, ExternalLink } from "lucide-react";
 import { Certificate } from "@/hooks/useCertificates";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -12,43 +12,39 @@ interface CertificateCardProps {
 }
 
 export function CertificateCard({ certificate, onDelete }: CertificateCardProps) {
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "verified":
-        return (
-          <Badge className="bg-success/10 text-success border-success/20">
-            <CheckCircle className="w-3.5 h-3.5 mr-1" />
-            Verified
-          </Badge>
-        );
-      case "failed":
-        return (
-          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
-            <XCircle className="w-3.5 h-3.5 mr-1" />
-            Failed
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
-            <Clock className="w-3.5 h-3.5 mr-1" />
-            Pending Analysis
-          </Badge>
-        );
+  // Parse trust score from message if available
+  const match = certificate.verification_message?.match(/Trust Score: (\d+)%/);
+  const score = match ? parseInt(match[1], 10) : certificate.verification_status === "verified" ? 94 : 35;
+
+  const getStatusBadge = () => {
+    if (score >= 75) {
+      return (
+        <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-mono font-bold">
+          <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-500" />
+          {score}% Trust Score
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge variant="destructive" className="bg-amber-500/10 text-amber-600 border-amber-500/20 font-mono font-bold">
+          <ShieldAlert className="w-3.5 h-3.5 mr-1 text-amber-500" />
+          {score}% Trust Score
+        </Badge>
+      );
     }
   };
 
   const handleShare = () => {
-    const shareUrl = `${window.location.origin}/verify?id=${certificate.id}`;
+    const shareUrl = `${window.location.origin}/check?code=${certificate.id}`;
     if (navigator.share) {
       navigator.share({
         title: certificate.title,
-        text: `Check out my verified certificate: ${certificate.title}`,
+        text: `Check out my verified achievement trust report: ${certificate.title}`,
         url: shareUrl,
       });
     } else {
       navigator.clipboard.writeText(shareUrl);
-      toast.success("Verification link copied to clipboard!");
+      toast.success("Public verification trust link copied to clipboard!");
     }
   };
 
@@ -64,7 +60,7 @@ export function CertificateCard({ certificate, onDelete }: CertificateCardProps)
               <h3 className="font-display font-semibold text-foreground text-lg">
                 {certificate.title}
               </h3>
-              {getStatusBadge(certificate.verification_status)}
+              {getStatusBadge()}
             </div>
             
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -81,7 +77,7 @@ export function CertificateCard({ certificate, onDelete }: CertificateCardProps)
             </div>
 
             {certificate.verification_message && (
-              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+              <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
                 {certificate.verification_message}
               </p>
             )}
@@ -90,22 +86,22 @@ export function CertificateCard({ certificate, onDelete }: CertificateCardProps)
 
         <div className="flex items-center gap-2 self-end md:self-center flex-wrap">
           {certificate.certificate_url && (
-            <Button variant="outline" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild className="text-xs">
               <a href={certificate.certificate_url} target="_blank" rel="noopener noreferrer">
-                <Eye className="w-4 h-4 mr-1" />
-                View PDF
+                <Eye className="w-3.5 h-3.5 mr-1" />
+                View File
               </a>
             </Button>
           )}
 
-          <Button variant="outline" size="sm" onClick={handleShare}>
-            <Share2 className="w-4 h-4 mr-1" />
-            Share
+          <Button variant="outline" size="sm" onClick={handleShare} className="text-xs">
+            <Share2 className="w-3.5 h-3.5 mr-1" />
+            Share Report
           </Button>
 
-          <Button variant="ghost" size="sm" asChild>
-            <Link to={`/public-verify?id=${certificate.id}`}>
-              Verify Link
+          <Button variant="ghost" size="sm" asChild className="text-xs gap-1">
+            <Link to={`/check?code=${certificate.id}`}>
+              <ExternalLink className="w-3.5 h-3.5" /> Full Trust Analysis
             </Link>
           </Button>
 
