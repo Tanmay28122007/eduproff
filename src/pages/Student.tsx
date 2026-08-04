@@ -7,6 +7,8 @@ import { Layout } from "@/components/layout/Layout";
 import { Upload, FileCheck, FileText, Award, Loader2, Mail, CheckCircle, AlertCircle, Hash, Bell, MessageSquare, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCertificates } from "@/hooks/useCertificates";
+import { useMessages } from "@/hooks/useMessages";
+import { Badge } from "@/components/ui/badge";
 import { CertificateCard } from "@/components/student/CertificateCard";
 import { NotificationsPanel } from "@/components/student/NotificationsPanel";
 import { RolePreferenceSelector } from "@/components/student/RolePreferenceSelector";
@@ -17,10 +19,13 @@ import { supabase } from "@/integrations/supabase/client";
 const Student = () => {
   const { user } = useAuth();
   const { certificates, loading, deleteCertificate } = useCertificates();
+  const { conversations } = useMessages();
   const [activeTab, setActiveTab] = useState<"certificates" | "notifications" | "messages" | "settings">("certificates");
   const [myCertificateId, setMyCertificateId] = useState("");
   const userName = user?.email?.split("@")[0] || "Achiever";
   const isEmailVerified = !!user?.email_confirmed_at;
+
+  const totalUnreadMessages = conversations.reduce((acc, c) => acc + c.unread_count, 0);
 
   const handleResendVerification = async () => {
     if (!user?.email) return;
@@ -160,10 +165,15 @@ const Student = () => {
               variant={activeTab === "messages" ? "default" : "ghost"}
               size="sm"
               onClick={() => setActiveTab("messages")}
-              className="gap-2 rounded-xl text-xs font-semibold"
+              className="gap-2 rounded-xl text-xs font-semibold relative"
             >
               <MessageSquare className="w-4 h-4" />
               Recruiter Messages
+              {totalUnreadMessages > 0 && (
+                <Badge className="bg-emerald-500 text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1 animate-pulse">
+                  {totalUnreadMessages}
+                </Badge>
+              )}
             </Button>
 
             <Button

@@ -4,6 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { safeFormatDate } from "@/lib/utils";
+import { MessageInbox } from "@/components/messaging/MessageInbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   ArrowLeft,
   Users,
@@ -17,6 +24,7 @@ import {
   Loader2,
   Hash,
   FileText,
+  MessageSquare,
 } from "lucide-react";
 
 interface CandidateProfileData {
@@ -70,6 +78,7 @@ const CandidateProfile = () => {
   const [profile, setProfile] = useState<CandidateProfileData | null>(null);
   const [certificates, setCertificates] = useState<CertificateEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
     if (candidateId) fetchData();
@@ -141,39 +150,46 @@ const CandidateProfile = () => {
 
       {/* Profile Header */}
       <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 mb-6">
-        <div className="flex items-start gap-4">
-          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Users className="w-7 h-7 text-primary" />
-          </div>
-          <div className="flex-1">
-            <h1 className="font-display text-xl font-bold text-foreground mb-1">
-              {profile.full_name || "Unnamed Candidate"}
-            </h1>
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              <span className="text-xs text-muted-foreground font-mono flex items-center gap-1">
-                <Hash className="w-3 h-3" />
-                {profile.user_id.slice(0, 8)}
-              </span>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                Joined {safeFormatDate(profile.created_at)}
-              </span>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="flex items-start gap-4 flex-1">
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Users className="w-7 h-7 text-primary" />
             </div>
-            <div className="flex flex-wrap gap-2">
-              {getPreferenceBadge(profile.role_preference)}
-              {verifiedCerts.length > 0 ? (
-                <Badge className="bg-success/10 text-success border-success/20">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  {verifiedCerts.length} Verified Certificate{verifiedCerts.length !== 1 ? "s" : ""}
-                </Badge>
-              ) : (
-                <Badge variant="secondary" className="text-muted-foreground">
-                  <XCircle className="w-3 h-3 mr-1" />
-                  No Verified Certificates
-                </Badge>
-              )}
+            <div className="flex-1 min-w-0">
+              <h1 className="font-display text-xl font-bold text-foreground mb-1 truncate">
+                {profile.full_name || "Unnamed Candidate"}
+              </h1>
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="text-xs text-muted-foreground font-mono flex items-center gap-1">
+                  <Hash className="w-3 h-3" />
+                  {profile.user_id.slice(0, 8)}
+                </span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  Joined {safeFormatDate(profile.created_at)}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {getPreferenceBadge(profile.role_preference)}
+                {verifiedCerts.length > 0 ? (
+                  <Badge className="bg-success/10 text-success border-success/20">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    {verifiedCerts.length} Verified Certificate{verifiedCerts.length !== 1 ? "s" : ""}
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="text-muted-foreground">
+                    <XCircle className="w-3 h-3 mr-1" />
+                    No Verified Certificates
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
+
+          <Button onClick={() => setChatOpen(true)} className="gap-2 shadow-soft shrink-0">
+            <MessageSquare className="w-4 h-4" />
+            Send Message
+          </Button>
         </div>
       </div>
 
@@ -252,6 +268,21 @@ const CandidateProfile = () => {
           </div>
         )}
       </div>
+
+      {/* Chat Dialog */}
+      <Dialog open={chatOpen} onOpenChange={setChatOpen}>
+        <DialogContent className="sm:max-w-2xl p-0 overflow-hidden rounded-2xl">
+          <DialogHeader className="p-4 px-6 border-b bg-muted/30">
+            <DialogTitle className="flex items-center gap-2 text-base font-bold">
+              <MessageSquare className="w-5 h-5 text-primary" />
+              Chat with {profile.full_name || "Candidate"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-4">
+            <MessageInbox canMessageRoles={["candidate"]} initialUserId={profile.user_id} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

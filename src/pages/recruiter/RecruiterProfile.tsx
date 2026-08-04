@@ -65,7 +65,7 @@ export function RecruiterProfile() {
       // Fetch count of total verified certificates & messages
       const [certsRes, msgsRes] = await Promise.all([
         supabase.from("certificates").select("id", { count: "exact" }).eq("verification_status", "verified"),
-        supabase.from("direct_messages").select("id", { count: "exact" }).eq("sender_id", user?.id),
+        supabase.from("messages").select("id", { count: "exact" }).eq("sender_id", user?.id),
       ]);
 
       setStats({

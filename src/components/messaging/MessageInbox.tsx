@@ -17,9 +17,10 @@ interface UserProfile {
 
 interface MessageInboxProps {
   canMessageRoles?: string[];
+  initialUserId?: string;
 }
 
-export function MessageInbox({ canMessageRoles }: MessageInboxProps) {
+export function MessageInbox({ canMessageRoles, initialUserId }: MessageInboxProps) {
   const { user } = useAuth();
   const { messages, loading: loadingMessages, sendMessage, markAsRead } = useMessages();
   const [conversations, setConversations] = useState<UserProfile[]>([]);
@@ -34,6 +35,33 @@ export function MessageInbox({ canMessageRoles }: MessageInboxProps) {
     fetchConversations();
   }, [user, messages]);
 
+  // Handle initialUserId pre-selection
+  useEffect(() => {
+    if (!initialUserId || conversations.length === 0) return;
+    if (!selectedUser) {
+      const match = conversations.find(c => c.user_id === initialUserId);
+      if (match) {
+        setSelectedUser(match);
+      } else {
+        // Fetch specific user profile if not found in list
+        supabase
+          .from("profiles")
+          .select("user_id, full_name")
+          .eq("user_id", initialUserId)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data) {
+              setSelectedUser({
+                user_id: data.user_id,
+                full_name: data.full_name,
+                role: "candidate",
+              });
+            }
+          });
+      }
+    }
+  }, [initialUserId, conversations]);
+
   const fetchConversations = async () => {
     if (!user) return;
     try {
@@ -43,6 +71,11 @@ export function MessageInbox({ canMessageRoles }: MessageInboxProps) {
         if (m.sender_id === user.id) partnerIds.add(m.receiver_id);
         if (m.receiver_id === user.id) partnerIds.add(m.sender_id);
       });
+
+      // If initialUserId provided, include it in partnerIds
+      if (initialUserId) {
+        partnerIds.add(initialUserId);
+      }
 
       // If user is a recruiter, allow them to initiate contact with candidates
       const { data: userRoleData } = await supabase
