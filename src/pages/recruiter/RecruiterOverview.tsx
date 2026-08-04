@@ -162,7 +162,7 @@ const RecruiterOverview = () => {
     }
   };
 
-  const filtered = candidates.filter((c) => {
+  const filteredCandidates = candidates.filter((c) => {
     if (prefFilter !== "all" && c.role_preference !== prefFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
