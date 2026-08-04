@@ -160,10 +160,15 @@ const CandidateProfile = () => {
                 {profile.full_name || "Unnamed Candidate"}
               </h1>
               <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className="text-xs text-muted-foreground font-mono flex items-center gap-1">
-                  <Hash className="w-3 h-3" />
-                  {profile.user_id.slice(0, 8)}
-                </span>
+                <button
+                  onClick={() => setChatOpen(true)}
+                  className="text-xs font-mono flex items-center gap-1 text-primary bg-primary/10 hover:bg-primary/20 px-2 py-0.5 rounded-md transition-colors cursor-pointer group"
+                  title="Click candidate ID to send message"
+                >
+                  <Hash className="w-3 h-3 text-primary group-hover:scale-110 transition-transform" />
+                  <span>{profile.user_id.slice(0, 8)}</span>
+                  <MessageSquare className="w-3 h-3 ml-0.5 opacity-70 group-hover:opacity-100" />
+                </button>
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
                   Joined {safeFormatDate(profile.created_at)}

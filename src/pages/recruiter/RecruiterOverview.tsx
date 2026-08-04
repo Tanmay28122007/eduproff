@@ -242,79 +242,84 @@ const RecruiterOverview = () => {
         </div>
       </div>
 
-      {/* Candidate Directory */}
-      <div className="bg-card rounded-2xl shadow-soft border border-border/50 p-6 mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
+      <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-primary" />
-            Candidate Directory
-          </h2>
-          <span className="text-sm text-muted-foreground">
-            {filtered.length} candidate{filtered.length !== 1 ? "s" : ""}
-          </span>
-        </div>
+            <h2 className="font-display text-lg font-bold text-foreground">Candidate Directory</h2>
+            <Badge variant="secondary" className="text-xs">{filteredCandidates.length}</Badge>
+          </div>
 
-        {/* Search & Filter */}
-        <div className="flex flex-col md:flex-row gap-3 mb-6">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <div className="relative w-full sm:w-64">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by name, ID, or institution..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-10"
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search by name, ID or institution..."
+              className="pl-9 text-xs"
             />
           </div>
-          <div className="flex gap-2 flex-wrap">
-            {PREFERENCE_FILTERS.map((f) => (
-              <Button
-                key={f.value}
-                variant={prefFilter === f.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => setPrefFilter(f.value)}
-              >
-                {f.label}
-              </Button>
-            ))}
-          </div>
         </div>
 
-        {/* List */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {PREFERENCE_FILTERS.map(f => (
+            <Button
+              key={f.value}
+              variant={prefFilter === f.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => setPrefFilter(f.value)}
+              className="text-xs rounded-full h-7 px-3"
+            >
+              {f.label}
+            </Button>
+          ))}
+        </div>
+
         {loading ? (
-          <div className="flex justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
-        ) : filtered.length === 0 ? (
+        ) : filteredCandidates.length === 0 ? (
           <div className="text-center py-12">
-            <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <h3 className="font-display text-lg font-semibold text-foreground mb-1">No candidates found</h3>
-            <p className="text-sm text-muted-foreground">
-              {searchQuery || prefFilter !== "all"
-                ? "Try adjusting your search or filter"
-                : "No registered candidates yet"}
+            <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-50" />
+            <p className="text-sm font-medium text-foreground">No candidates found</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Try adjusting your search query or role filter.
             </p>
           </div>
         ) : (
           <div className="space-y-3">
-            {filtered.map((c) => (
-              <Link
+            {filteredCandidates.map(c => (
+              <div
                 key={c.user_id}
-                to={`/recruiter/candidate/${c.user_id}`}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-border/50 hover:bg-secondary/50 hover:border-primary/20 transition-all"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-border/50 hover:bg-secondary/30 transition-all"
               >
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Link
+                  to={`/recruiter/candidate/${c.user_id}`}
+                  className="flex items-center gap-4 flex-1 min-w-0 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                     <Users className="w-5 h-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground text-sm truncate">
+                    <p className="font-medium text-foreground text-sm truncate group-hover:text-primary transition-colors">
                       {c.full_name || "Unnamed Candidate"}
                     </p>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
-                      <span className="text-[11px] text-muted-foreground font-mono flex items-center gap-1">
-                        <Hash className="w-3 h-3" />
-                        {c.user_id.slice(0, 8)}
-                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setActiveChatCandidate(c);
+                        }}
+                        className="text-[11px] font-mono flex items-center gap-1 text-primary bg-primary/10 hover:bg-primary/20 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                        title="Click Candidate ID to send message"
+                      >
+                        <Hash className="w-3 h-3 text-primary" />
+                        <span>{c.user_id.slice(0, 8)}</span>
+                        <MessageSquare className="w-3 h-3 ml-0.5 opacity-70" />
+                      </button>
                       {c.institution_name && (
                         <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                           <Building2 className="w-3 h-3" />
@@ -323,7 +328,8 @@ const RecruiterOverview = () => {
                       )}
                     </div>
                   </div>
-                </div>
+                </Link>
+
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {getPreferenceBadge(c.role_preference)}
                   {c.has_verified ? (
@@ -337,15 +343,39 @@ const RecruiterOverview = () => {
                       Not Verified
                     </Badge>
                   )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setActiveChatCandidate(c)}
+                    className="gap-1 text-xs h-8 px-2.5 ml-1"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                    Chat
+                  </Button>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Messages */}
       <MessageInbox canMessageRoles={["candidate"]} />
+
+      {activeChatCandidate && (
+        <Dialog open={!!activeChatCandidate} onOpenChange={(open) => !open && setActiveChatCandidate(null)}>
+          <DialogContent className="sm:max-w-2xl p-0 overflow-hidden rounded-2xl">
+            <DialogHeader className="p-4 px-6 border-b bg-muted/30">
+              <DialogTitle className="flex items-center gap-2 text-base font-bold">
+                <MessageSquare className="w-5 h-5 text-primary" />
+                Chat with {activeChatCandidate.full_name || "Candidate"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="p-4">
+              <MessageInbox canMessageRoles={["candidate"]} initialUserId={activeChatCandidate.user_id} />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
