@@ -80,10 +80,10 @@ const Terms = () => {
               </div>
 
               <div>
-                <h2 className="font-display text-2xl font-bold text-foreground mb-4">6. Intellectual Property</h2>
+                <h2 className="font-display text-2xl font-bold text-foreground mb-4">6. Intellectual Property & Copyright</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  The Platform and its original content, features, and functionality are owned by EduProof 
-                  and are protected by international copyright, trademark, and other intellectual property laws.
+                  The Platform and its original content, features, code, and functionality are owned by Tanmay Anand 
+                  and are protected by international copyright, trademark, permission, and other intellectual property laws. All rights reserved.
                 </p>
               </div>
 

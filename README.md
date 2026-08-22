@@ -58,3 +58,9 @@ The output will be in the `dist/` directory. Deploy to any static hosting provid
 ## Custom Domain
 
 Refer to your hosting provider's documentation to connect a custom domain to your deployed application.
+
+## License & Copyright
+
+Copyright (c) 2026 Tanmay Anand. All rights reserved.  
+Licensed under the [MIT License](LICENSE).
+

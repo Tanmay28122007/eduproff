@@ -90,7 +90,7 @@ export function Footer() {
 
         <div className="border-t border-border mt-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-muted-foreground text-sm">
-            © {new Date().getFullYear()} EduProof. All rights reserved.
+            © {new Date().getFullYear()} Tanmay Anand. All rights reserved.
           </p>
         </div>
       </div>

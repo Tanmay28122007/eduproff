@@ -1,14 +1,8 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
+Disallow: /admin/
+Disallow: /student/
+Disallow: /recruiter/
+Disallow: /api/
+Disallow: /generate-cv/
 Allow: /
+

@@ -28,7 +28,7 @@ const Privacy = () => {
               <div>
                 <h2 className="font-display text-2xl font-bold text-foreground mb-4">1. Introduction</h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  EduProof ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy 
+                  EduProof ("we," "our," or "us"), created and owned by Tanmay Anand, is committed to protecting your privacy. This Privacy Policy 
                   explains how we collect, use, disclose, and safeguard your information when you use our 
                   credential verification platform.
                 </p>

@@ -5,13 +5,13 @@ import { getStorage } from "firebase/storage";
 import appletConfig from "../../firebase-applet-config.json";
 
 const firebaseConfig = {
-  apiKey: appletConfig.apiKey || import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyC3-K9E6Nqpz62Yduhs08c1Y2xWUF872Hs",
-  authDomain: appletConfig.authDomain || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "eduproof-c296a.firebaseapp.com",
-  projectId: appletConfig.projectId || import.meta.env.VITE_FIREBASE_PROJECT_ID || "eduproof-c296a",
-  storageBucket: appletConfig.storageBucket || import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "eduproof-c296a.firebasestorage.app",
-  messagingSenderId: appletConfig.messagingSenderId || import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "278888840550",
-  appId: appletConfig.appId || import.meta.env.VITE_FIREBASE_APP_ID || "1:278888840550:web:7457a1bdbc8e5a237e9ca7",
-  measurementId: appletConfig.measurementId || import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-TYX6C0HC0X"
+  apiKey: (appletConfig as any).apiKey || import.meta.env.VITE_FIREBASE_API_KEY || "",
+  authDomain: (appletConfig as any).authDomain || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+  projectId: (appletConfig as any).projectId || import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+  storageBucket: (appletConfig as any).storageBucket || import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: (appletConfig as any).messagingSenderId || import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: (appletConfig as any).appId || import.meta.env.VITE_FIREBASE_APP_ID || "",
+  measurementId: (appletConfig as any).measurementId || import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || ""
 };
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
