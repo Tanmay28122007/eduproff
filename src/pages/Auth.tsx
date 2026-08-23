@@ -51,10 +51,38 @@ const Auth = () => {
     }
   };
 
+  const formatAuthError = (message: string): string => {
+    if (!message) return "An unexpected error occurred. Please try again.";
+    if (
+      message.includes("auth/invalid-credential") ||
+      message.includes("auth/wrong-password") ||
+      message.includes("auth/user-not-found") ||
+      message.includes("INVALID_LOGIN_CREDENTIALS")
+    ) {
+      return "Invalid email or password. Please check your credentials and try again.";
+    }
+    if (message.includes("auth/email-already-in-use")) {
+      return "An account with this email address already exists. Please log in instead.";
+    }
+    if (message.includes("auth/weak-password")) {
+      return "Password is too weak. Please use at least 6 characters.";
+    }
+    if (message.includes("auth/invalid-email")) {
+      return "Please enter a valid email address.";
+    }
+    if (message.includes("auth/too-many-requests")) {
+      return "Access to this account has been temporarily disabled due to many failed login attempts. Please try again later.";
+    }
+    if (message.includes("auth/user-disabled")) {
+      return "This user account has been disabled.";
+    }
+    return message.replace(/^Firebase:\s*Error\s*\(auth\/[^)]+\)\.?\s*/i, "");
+  };
+
   const handleUserLogin = async () => {
     const res = await signIn(email, password);
     if (res.error) {
-      setError(res.error.message);
+      setError(formatAuthError(res.error.message));
     } else {
       let resolvedRole = res.role;
       if (!resolvedRole || resolvedRole === "candidate") {
@@ -80,7 +108,7 @@ const Auth = () => {
     }
     const { error } = await signUp(email, password, displayName, selectedRole);
     if (error) {
-      setError(error.message);
+      setError(formatAuthError(error.message));
     } else {
       redirectByRole(selectedRole);
     }
@@ -98,7 +126,7 @@ const Auth = () => {
         await handleUserLogin();
       }
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
+      setError(formatAuthError(err.message || "An unexpected error occurred"));
     } finally {
       setFormLoading(false);
     }
