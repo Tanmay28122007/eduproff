@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { MessageInbox } from "@/components/messaging/MessageInbox";
@@ -15,6 +16,7 @@ import {
   XCircle,
   Building2,
   Hash,
+  MessageSquare,
 } from "lucide-react";
 
 interface CandidateEntry {
@@ -71,6 +73,7 @@ const RecruiterOverview = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [prefFilter, setPrefFilter] = useState("all");
+  const [activeChatCandidate, setActiveChatCandidate] = useState<CandidateEntry | null>(null);
 
   useEffect(() => {
     fetchCandidates();
