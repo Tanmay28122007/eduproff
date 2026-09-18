@@ -7,10 +7,10 @@ export interface ChatMessage {
 }
 
 export const SUPPORTED_MODELS = [
-  { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash (Ultra-Fast & Smart)", isDefault: true },
-  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
-  { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash (Standard)" },
-  { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro (Deep Reasoning)" },
+  { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", isDefault: true },
+  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash (Ultra-Fast & Stable)" },
+  { id: "gemini-flash-latest", name: "Gemini Flash Latest" },
+  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro (Deep Reasoning)" },
 ];
 
 const STORAGE_KEY_API_KEY = "eduproof_gemini_api_key";
@@ -33,7 +33,7 @@ export const setGeminiApiKey = (key: string) => {
 export const getSelectedModel = (): string => {
   const envModel = import.meta.env.VITE_GEMINI_MODEL || "gemini-3.5-flash";
   const localModel = localStorage.getItem(STORAGE_KEY_MODEL);
-  if (localModel && localModel.trim() && localModel !== "gemini-2.5-flash") return localModel.trim();
+  if (localModel && localModel.trim()) return localModel.trim();
   return envModel;
 };
 
@@ -125,14 +125,15 @@ export async function sendGeminiChatMessage(
     throw new Error("No messages provided to send.");
   }
 
-  // Model fallback chain
+  // Model fallback chain: try user selected model (gemini-3.5-flash) first,
+  // then gracefully cascade to gemini-2.5-flash or flash-latest if Google's API returns 503 / high demand
   const modelsToTry = [
     model,
     "gemini-3.5-flash",
     "gemini-2.5-flash",
-    "gemini-1.5-flash",
-    "gemini-1.5-pro",
-  ].filter((v, i, a) => a.indexOf(v) === i);
+    "gemini-flash-latest",
+    "gemini-2.5-pro",
+  ].filter((v, i, a) => v && a.indexOf(v) === i);
 
   let lastError: Error | null = null;
 
@@ -153,31 +154,33 @@ export async function sendGeminiChatMessage(
         },
       };
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 9000);
+
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const message = errorData?.error?.message || `HTTP ${response.status}: ${response.statusText}`;
 
-        if (response.status === 404 && currentModel !== modelsToTry[modelsToTry.length - 1]) {
-          continue;
-        }
-
-        if (response.status === 400 && message.includes("API key")) {
+        // If the API key is completely invalid, throw directly
+        if (response.status === 400 && message.toLowerCase().includes("api key")) {
           throw new Error("Invalid API Key. Please verify your Google AI Studio API key in Settings.");
         }
 
-        if (response.status === 429) {
-          throw new Error("API rate limit reached. Please wait a moment before trying again.");
-        }
-
-        throw new Error(message);
+        // If high demand (503), not found (404), or rate limited (429), try next model in chain
+        console.warn(`Gemini model ${currentModel} returned ${response.status}: ${message}. Attempting fallback model...`);
+        lastError = new Error(message);
+        continue;
       }
 
       const data = await response.json();
@@ -187,19 +190,23 @@ export async function sendGeminiChatMessage(
         if (candidate?.finishReason === "SAFETY") {
           return "I cannot generate a response to that query due to safety guidelines.";
         }
-        return "No response received from model.";
+        continue;
       }
 
       return candidate.content.parts.map((p: { text?: string }) => p.text || "").join("");
     } catch (err: any) {
+      console.warn(`Error connecting to ${currentModel}:`, err.message);
       lastError = err;
-      if (err.message?.includes("API key") || err.message?.includes("rate limit")) {
+      if (err.name === "AbortError") {
+        console.warn(`Model ${currentModel} timed out. Trying fallback model...`);
+      }
+      if (err.message?.toLowerCase().includes("api key not valid")) {
         throw err;
       }
     }
   }
 
-  // Fall back to smart built-in answers if network/quota fails
+  // Fall back to smart built-in answers if all network models fail or error out
   if (lastUserMessage) {
     return getSmartFallbackResponse(lastUserMessage);
   }
