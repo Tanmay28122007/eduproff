@@ -233,12 +233,13 @@ const Recruiter = () => {
           <div className="grid sm:grid-cols-3 gap-6">
             <button
               onClick={() => document.getElementById("certificates")?.scrollIntoView({ behavior: "smooth" })}
-              className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group text-left"
+              className="group relative bg-card/90 backdrop-blur-sm rounded-2xl p-6 shadow-soft border border-border/70 hover:shadow-2xl hover:shadow-primary/15 hover:-translate-y-2 hover:border-primary/60 transition-all duration-300 overflow-hidden hover-card-shine cursor-pointer text-left"
             >
-              <div className="w-14 h-14 rounded-xl gradient-hero flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 group-hover:opacity-100 group-hover:h-1.5 transition-all duration-300" />
+              <div className="w-14 h-14 rounded-xl gradient-hero flex items-center justify-center mb-4 group-hover:scale-115 group-hover:rotate-3 group-hover:shadow-lg group-hover:shadow-primary/25 transition-all duration-300">
                 <Award className="w-7 h-7 text-primary-foreground" />
               </div>
-              <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+              <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-200">
                 View All Certificates
               </h3>
               <p className="text-muted-foreground text-sm">
@@ -248,12 +249,13 @@ const Recruiter = () => {
 
             <Link
               to="/verify"
-              className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-primary/30 transition-all group"
+              className="group relative bg-card/90 backdrop-blur-sm rounded-2xl p-6 shadow-soft border border-border/70 hover:shadow-2xl hover:shadow-primary/15 hover:-translate-y-2 hover:border-primary/60 transition-all duration-300 overflow-hidden hover-card-shine cursor-pointer"
             >
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Search className="w-7 h-7 text-primary" />
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 group-hover:opacity-100 group-hover:h-1.5 transition-all duration-300" />
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-115 group-hover:rotate-3 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/25 transition-all duration-300">
+                <Search className="w-7 h-7" />
               </div>
-              <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+              <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-200">
                 Verify Certificate
               </h3>
               <p className="text-muted-foreground text-sm">
@@ -263,12 +265,13 @@ const Recruiter = () => {
 
             <Link
               to="/support"
-              className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium hover:border-accent/30 transition-all group"
+              className="group relative bg-card/90 backdrop-blur-sm rounded-2xl p-6 shadow-soft border border-border/70 hover:shadow-2xl hover:shadow-accent/20 hover:-translate-y-2 hover:border-accent/60 transition-all duration-300 overflow-hidden hover-card-shine cursor-pointer"
             >
-              <div className="w-14 h-14 rounded-xl gradient-accent flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent/20 via-accent to-accent/20 opacity-0 group-hover:opacity-100 group-hover:h-1.5 transition-all duration-300" />
+              <div className="w-14 h-14 rounded-xl gradient-accent flex items-center justify-center mb-4 group-hover:scale-115 group-hover:rotate-3 group-hover:shadow-lg transition-all duration-300">
                 <Headphones className="w-7 h-7 text-accent-foreground" />
               </div>
-              <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+              <h3 className="font-display text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-200">
                 Contact Support
               </h3>
               <p className="text-muted-foreground text-sm">
@@ -366,17 +369,18 @@ const Recruiter = () => {
               {filteredCertificates.map((cert) => (
                 <div
                   key={cert.id}
-                  className="bg-card rounded-xl p-6 shadow-soft border border-border/50 hover:shadow-medium transition-shadow"
+                  className="group relative bg-card/90 backdrop-blur-sm rounded-2xl p-6 shadow-soft border border-border/70 hover:shadow-2xl hover:shadow-primary/15 hover:-translate-y-2 hover:border-primary/60 transition-all duration-300 overflow-hidden hover-card-shine"
                 >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 group-hover:opacity-100 group-hover:h-1.5 transition-all duration-300" />
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl gradient-hero flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 rounded-xl gradient-hero flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-md transition-all duration-300">
                           <Award className="w-6 h-6 text-primary-foreground" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 mb-1">
-                            <h3 className="font-display font-semibold text-foreground truncate">
+                            <h3 className="font-display font-semibold text-foreground truncate group-hover:text-primary transition-colors duration-200">
                               {cert.title}
                             </h3>
                             {getStatusBadge(cert.verification_status)}

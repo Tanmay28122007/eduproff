@@ -79,7 +79,7 @@ export function RolePreferenceSelector() {
   }
 
   return (
-    <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+    <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-xl hover:border-primary/40 hover:-translate-y-1 transition-all duration-300">
       <h3 className="font-display text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
         <Briefcase className="w-5 h-5 text-primary" />
         Role Preference

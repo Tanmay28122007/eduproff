@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { MessageInbox } from "@/components/messaging/MessageInbox";
 import { toast } from "sonner";
 import { safeFormatDate } from "@/lib/utils";
 import {
@@ -288,6 +289,11 @@ export function RecruiterProfile() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Managed Candidate Conversations */}
+      <div className="mt-8">
+        <MessageInbox canMessageRoles={["candidate"]} />
+      </div>
     </div>
   );
 }

@@ -134,7 +134,7 @@ const Demo = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
             {/* Input Form */}
-            <div className="bg-card rounded-2xl p-8 shadow-medium border border-border/50 mb-8">
+            <div className="bg-card rounded-2xl p-8 shadow-medium border border-border/70 hover:shadow-xl hover:border-primary/40 transition-all duration-300 mb-8">
               <h2 className="font-display text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
                 <Search className="w-5 h-5 text-primary" />
                 Enter Certificate Code
@@ -142,11 +142,11 @@ const Demo = () => {
 
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="code" className="text-sm font-medium text-foreground mb-2 block">
-                    Certificate / Credential ID
+                  <Label htmlFor="certCode" className="text-sm text-muted-foreground mb-2 block">
+                    Certificate Code
                   </Label>
                   <Input
-                    id="code"
+                    id="certCode"
                     placeholder="e.g., AWS-12345, COURSE-67890"
                     value={certificateCode}
                     onChange={(e) => setCertificateCode(e.target.value)}
@@ -183,7 +183,7 @@ const Demo = () => {
                     <button
                       key={code}
                       onClick={() => setCertificateCode(code)}
-                      className="text-xs font-mono bg-background px-2 py-1 rounded border border-border hover:border-primary transition-colors"
+                      className="text-xs font-mono bg-background px-3 py-1.5 rounded-lg border border-border/70 hover:border-primary hover:text-primary hover:scale-110 hover:shadow-xs active:scale-95 transition-all duration-200 cursor-pointer"
                     >
                       {code}
                     </button>
@@ -194,7 +194,7 @@ const Demo = () => {
 
             {/* Result Display */}
             {result && (
-              <div className="bg-card rounded-2xl p-8 shadow-medium border border-border/50 animate-fade-in">
+              <div className="bg-card rounded-2xl p-8 shadow-card border border-border/70 hover:shadow-2xl hover:border-primary/40 hover:-translate-y-1 transition-all duration-300 animate-fade-in">
                 <div className="flex items-start justify-between mb-6">
                   <div>
                     <h2 className="font-display text-xl font-semibold text-foreground mb-1">

@@ -39,8 +39,20 @@ import AdminActivity from "./pages/admin/AdminActivity";
 import AdminFlaggedReports from "./pages/admin/AdminFlaggedReports";
 import AdminMessaging from "./pages/admin/AdminMessaging";
 import AdminChatbot from "./pages/admin/AdminChatbot";
+import { EduProofChatbot } from "./components/chat/EduProofChatbot";
+
+import { transferLocalDataToSupabase } from "@/utils/migrateLocalDataToSupabase";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
+
+function DataSyncInitializer() {
+  useEffect(() => {
+    // Run initial data sync to Supabase in background
+    transferLocalDataToSupabase().catch(() => {});
+  }, []);
+  return null;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -49,6 +61,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
+          <DataSyncInitializer />
 
             <Routes>
               <Route path="/" element={<Index />} />
@@ -137,6 +150,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <EduProofChatbot />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

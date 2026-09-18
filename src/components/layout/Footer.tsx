@@ -35,11 +35,11 @@ export function Footer() {
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Shield className="w-4 h-4 text-primary-foreground" />
+            <Link to="/" className="group flex items-center gap-2 mb-4 transition-transform duration-200 hover:scale-105 inline-flex">
+              <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center group-hover:shadow-md group-hover:shadow-primary/30 transition-all">
+                <Shield className="w-4 h-4 text-primary-foreground transition-transform group-hover:rotate-6" />
               </div>
-              <span className="font-display font-bold text-lg text-foreground">
+              <span className="font-display font-bold text-lg text-foreground group-hover:text-primary transition-colors">
                 EduProof
               </span>
             </Link>
@@ -53,7 +53,7 @@ export function Footer() {
             <ul className="space-y-2.5">
               {footerLinks.product.map((link) => (
                 <li key={link.href}>
-                  <Link to={link.href} className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+                  <Link to={link.href} className="text-muted-foreground hover:text-primary hover:translate-x-1 inline-block text-sm transition-all duration-200">
                     {link.label}
                   </Link>
                 </li>
@@ -66,7 +66,7 @@ export function Footer() {
             <ul className="space-y-2.5">
               {footerLinks.company.map((link) => (
                 <li key={link.href}>
-                  <Link to={link.href} className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+                  <Link to={link.href} className="text-muted-foreground hover:text-primary hover:translate-x-1 inline-block text-sm transition-all duration-200">
                     {link.label}
                   </Link>
                 </li>
@@ -79,7 +79,7 @@ export function Footer() {
             <ul className="space-y-2.5">
               {footerLinks.legal.map((link) => (
                 <li key={link.href}>
-                  <Link to={link.href} className="text-muted-foreground hover:text-foreground text-sm transition-colors">
+                  <Link to={link.href} className="text-muted-foreground hover:text-primary hover:translate-x-1 inline-block text-sm transition-all duration-200">
                     {link.label}
                   </Link>
                 </li>

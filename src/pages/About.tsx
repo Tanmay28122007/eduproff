@@ -78,7 +78,7 @@ const About = () => {
       </section>
 
       {/* Vision */}
-      <section className="py-24">
+      <section className="py-24 relative overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -96,11 +96,12 @@ const About = () => {
                   By evaluating achievements across AI forensics, OCR logic, code commits, winner lists, and public registries, EduProof provides immediate value independently of educational institutions.
                 </p>
               </div>
-              <div className="bg-card rounded-2xl p-8 shadow-medium border border-border/50">
-                <div className="w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center mb-6 shadow-glow-primary">
+              <div className="group relative bg-card/90 backdrop-blur-md rounded-3xl p-8 shadow-medium hover:shadow-2xl hover:shadow-primary/20 border border-border/70 hover:border-primary/70 hover:-translate-y-2.5 transition-all duration-300 overflow-hidden hover-card-shine cursor-pointer">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 group-hover:opacity-100 group-hover:h-1.5 transition-all duration-300" />
+                <div className="w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center mb-6 shadow-glow-primary group-hover:scale-115 group-hover:rotate-6 transition-transform duration-300">
                   <Shield className="w-8 h-8 text-primary-foreground" />
                 </div>
-                <h3 className="font-display text-xl font-semibold text-foreground mb-4">
+                <h3 className="font-display text-xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors">
                   Why Multi-Signal Trust Matters
                 </h3>
                 <ul className="space-y-3">
@@ -128,7 +129,7 @@ const About = () => {
       </section>
 
       {/* Tech Connections */}
-      <section className="py-24 bg-secondary/30">
+      <section className="py-24 bg-secondary/30 relative">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -143,17 +144,18 @@ const About = () => {
             {fintechConnections.map((item) => (
               <div
                 key={item.title}
-                className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
+                className="group relative bg-card/90 backdrop-blur-sm rounded-2xl p-7 shadow-soft border border-border/70 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-2.5 hover:border-primary/70 transition-all duration-300 overflow-hidden hover-card-shine cursor-pointer"
               >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 group-hover:opacity-100 group-hover:h-1.5 transition-all duration-300" />
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Building2 className="w-5 h-5 text-primary" />
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 group-hover:scale-115 group-hover:rotate-6 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-md transition-all duration-300">
+                    <Building2 className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                    <h3 className="font-display text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
                       {item.title}
                     </h3>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-sm leading-relaxed">
                       {item.description}
                     </p>
                   </div>
@@ -165,7 +167,7 @@ const About = () => {
       </section>
 
       {/* Values */}
-      <section className="py-24">
+      <section className="py-24 relative">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -180,15 +182,16 @@ const About = () => {
             {values.map((value) => (
               <div
                 key={value.title}
-                className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 text-center"
+                className="group relative bg-card/90 backdrop-blur-sm rounded-2xl p-7 shadow-soft border border-border/70 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-2.5 hover:border-primary/70 transition-all duration-300 text-center overflow-hidden hover-card-shine cursor-pointer"
               >
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <value.icon className="w-7 h-7 text-primary" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 group-hover:opacity-100 group-hover:h-1.5 transition-all duration-300" />
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-5 group-hover:scale-115 group-hover:rotate-6 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-xl group-hover:shadow-primary/25 transition-all duration-300">
+                  <value.icon className="w-7 h-7 transition-transform group-hover:rotate-6" />
                 </div>
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                <h3 className="font-display text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
                   {value.title}
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {value.description}
                 </p>
               </div>

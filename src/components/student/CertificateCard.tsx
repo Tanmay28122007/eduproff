@@ -49,15 +49,17 @@ export function CertificateCard({ certificate, onDelete }: CertificateCardProps)
   };
 
   return (
-    <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-medium transition-all group">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="group relative bg-card/90 backdrop-blur-sm rounded-2xl p-6 shadow-soft border border-border/70 hover:shadow-2xl hover:shadow-primary/15 hover:-translate-y-2.5 hover:border-primary/60 transition-all duration-300 overflow-hidden hover-card-shine">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 group-hover:opacity-100 group-hover:h-1.5 transition-all duration-300" />
+      <div className="absolute -right-8 -top-8 w-28 h-28 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/20 transition-all duration-500 pointer-events-none" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl gradient-hero flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+          <div className="w-12 h-12 rounded-xl gradient-hero flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg group-hover:shadow-primary/25 transition-all duration-300">
             <FileText className="w-6 h-6 text-primary-foreground" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <h3 className="font-display font-semibold text-foreground text-lg">
+              <h3 className="font-display font-semibold text-foreground text-lg group-hover:text-primary transition-colors duration-200">
                 {certificate.title}
               </h3>
               {getStatusBadge()}

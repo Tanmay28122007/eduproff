@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Layout } from "@/components/layout/Layout";
-import { Upload, FileCheck, FileText, Award, Loader2, Mail, CheckCircle, AlertCircle, Hash, Bell, MessageSquare, Settings } from "lucide-react";
+import { Upload, FileCheck, FileText, Award, Loader2, Hash, Bell, MessageSquare, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCertificates } from "@/hooks/useCertificates";
 import { useMessages } from "@/hooks/useMessages";
@@ -23,27 +23,8 @@ const Student = () => {
   const [activeTab, setActiveTab] = useState<"certificates" | "notifications" | "messages" | "settings">("certificates");
   const [myCertificateId, setMyCertificateId] = useState("");
   const userName = user?.email?.split("@")[0] || "Achiever";
-  const isEmailVerified = !!user?.email_confirmed_at;
 
   const totalUnreadMessages = conversations.reduce((acc, c) => acc + c.unread_count, 0);
-
-  const handleResendVerification = async () => {
-    if (!user?.email) return;
-    
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email: user.email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-      },
-    });
-    
-    if (error) {
-      toast.error("Failed to send verification email");
-    } else {
-      toast.success("Verification email sent! Check your inbox.");
-    }
-  };
 
   const verifiedCertificates = certificates.filter(c => c.verification_status === "verified");
 
@@ -58,38 +39,6 @@ const Student = () => {
 
   return (
     <Layout>
-      {/* Email Verification Banner */}
-      {!isEmailVerified && (
-        <div className="bg-warning/10 border-b border-warning/20">
-          <div className="container mx-auto px-4 py-3">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center flex-shrink-0">
-                  <AlertCircle className="w-4 h-4 text-warning" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    Please verify your email address
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Check your inbox for the verification link to unlock all features
-                  </p>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleResendVerification}
-                className="flex-shrink-0"
-              >
-                <Mail className="w-4 h-4 mr-1" />
-                Resend Email
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Hero Section */}
       <section className="py-12 bg-gradient-to-b from-secondary/50 to-background">
         <div className="container mx-auto px-4">
@@ -100,19 +49,6 @@ const Student = () => {
                   <Award className="w-4 h-4" />
                   Candidate Workspace
                 </div>
-                
-                {/* Email Status Badge */}
-                {isEmailVerified ? (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-medium">
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    Email Verified
-                  </div>
-                ) : (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-warning/10 text-warning text-xs font-medium">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    Email Not Verified
-                  </div>
-                )}
               </div>
               
               <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
@@ -274,7 +210,7 @@ const Student = () => {
           {activeTab === "settings" && (
             <div className="grid md:grid-cols-2 gap-6">
               <RolePreferenceSelector />
-              <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
+              <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-xl hover:border-primary/40 hover:-translate-y-1 transition-all duration-300">
                 <h3 className="font-display text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
                   <Hash className="w-5 h-5 text-primary" />
                   Certificate & Achievement ID Lookup

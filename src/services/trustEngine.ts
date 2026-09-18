@@ -16,6 +16,12 @@
  * the system returns "Needs Manual Review" rather than "Verified".
  */
 
+import {
+  runAICertificateVerification,
+  AICertificateVerificationResult,
+  VerificationSignalWeights,
+} from "./aiCertificateVerificationEngine";
+
 export interface EvidenceItem {
   id: string;
   type: "email" | "photo" | "github" | "linkedin" | "announcement" | "paper" | "portfolio" | "other";
@@ -111,9 +117,12 @@ export interface TrustAnalysisResult {
   cryptoHash: string;
   qrCodeUrl: string;
   aiSummary: string;
+  aiVerificationResult?: AICertificateVerificationResult;
+  analysisId?: string;
 }
 
 export interface VerificationInput {
+  analysisId?: string;
   title: string;
   issuer: string;
   certificateCode?: string;
@@ -126,6 +135,7 @@ export interface VerificationInput {
   portfolioUrl?: string;
   publicSearchLinks?: string[];
   endorsements?: VerifierEndorsement[];
+  customWeights?: Partial<VerificationSignalWeights>;
 }
 
 export function generateCertificateHash(certId: string, student: string, issuer: string, date: string): string {
@@ -448,17 +458,37 @@ export async function analyzeAchievement(input: VerificationInput): Promise<Trus
     ? `The achievement "${title}" from ${issuer} requires manual review. Objective verification signals (such as an embedded QR code, digital PKI signature, or public web record) were insufficient for automatic verification.`
     : `The achievement "${title}" earned by ${student} from ${issuer} has been verified with ${overallConfidenceScore}% confidence. Hybrid analysis confirms document structural integrity, matching public web records, and timeline consistency.`;
 
+  const aiVerificationResult = await runAICertificateVerification({
+    analysisId: input.analysisId,
+    file: input.file,
+    providedTitle: title,
+    providedIssuer: issuer,
+    providedStudentName: student,
+    providedDate: dateStr,
+    providedCertId: certId,
+    githubUrl: input.githubUrl,
+    linkedinUrl: input.linkedinUrl,
+    weights: input.customWeights,
+  });
+
   return {
+    analysisId: aiVerificationResult.analysis_id,
     certificateId: certId,
     studentName: student,
     issuerName: issuer,
     achievementTitle: title,
     issueDate: dateStr,
-    overallConfidenceScore,
-    confidenceLevel,
-    requiresManualReview,
+    overallConfidenceScore: aiVerificationResult.verification_confidence,
+    confidenceLevel: aiVerificationResult.authenticity_status === "HIGHLY_VERIFIED"
+      ? "Exceptional Trust"
+      : aiVerificationResult.authenticity_status === "LIKELY_GENUINE"
+      ? "High Confidence"
+      : aiVerificationResult.authenticity_status === "NEEDS_REVIEW"
+      ? "Needs Manual Review"
+      : "High Risk",
+    requiresManualReview: aiVerificationResult.manual_review_required,
     tamperRisk,
-    tamperProbabilityScore: forensics.tamperRiskScore,
+    tamperProbabilityScore: aiVerificationResult.ai_manipulation_probability,
     templateMatchScore,
     pillarScores: {
       forensics: forensicPillar,
@@ -468,8 +498,8 @@ export async function analyzeAchievement(input: VerificationInput): Promise<Trus
       digitalSignature: digitalSignatureScore,
       humanEndorsement: humanScore,
     },
-    positiveSignals,
-    riskWarnings,
+    positiveSignals: aiVerificationResult.evidence.positive.length > 0 ? aiVerificationResult.evidence.positive : positiveSignals,
+    riskWarnings: aiVerificationResult.evidence.warnings.length > 0 ? aiVerificationResult.evidence.warnings : riskWarnings,
     pipelineSteps,
     extractedMetadata,
     evidenceItems: evidenceList,
@@ -478,6 +508,7 @@ export async function analyzeAchievement(input: VerificationInput): Promise<Trus
     timeline,
     cryptoHash,
     qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`https://eduproof.vercel.app/check?code=${certId}`)}`,
-    aiSummary,
+    aiSummary: aiVerificationResult.final_conclusion,
+    aiVerificationResult,
   };
 }

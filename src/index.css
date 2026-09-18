@@ -185,10 +185,66 @@
   .glass-card {
     @apply bg-card/80 backdrop-blur-xl border border-border/50;
   }
+
+  .interactive-card {
+    @apply transition-all duration-300 ease-out hover:-translate-y-2.5 hover:shadow-2xl hover:shadow-primary/15 hover:border-primary/60 hover:bg-card relative overflow-hidden;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50;
+  }
+
+  .card-hover-lg {
+    @apply transition-all duration-300 ease-out hover:-translate-y-3 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/70;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .hover-card-shine {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hover-card-shine::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      60deg,
+      transparent 30%,
+      rgba(16, 185, 129, 0.15) 50%,
+      transparent 70%
+    );
+    transform: rotate(25deg) translateX(-100%);
+    transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .hover-card-shine:hover::after {
+    transform: rotate(25deg) translateX(100%);
+  }
+
+  .hover-glow-primary {
+    @apply transition-all duration-300 hover:shadow-[0_0_25px_rgba(16,185,129,0.35)];
+  }
+
+  .hover-lift-sm {
+    @apply transition-transform duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .hover-lift-md {
+    @apply transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-lg active:translate-y-0;
+  }
+
+  .hover-lift-lg {
+    @apply transition-all duration-300 ease-out hover:-translate-y-2.5 hover:shadow-2xl active:translate-y-0;
   }
 }

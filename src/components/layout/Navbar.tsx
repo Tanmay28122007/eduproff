@@ -53,25 +53,25 @@ export function Navbar() {
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Shield className="w-4.5 h-4.5 text-primary-foreground" />
+          <Link to="/" className="group flex items-center gap-2.5 transition-transform duration-200 hover:scale-105">
+            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/40 group-hover:scale-110 transition-all duration-300">
+              <Shield className="w-4.5 h-4.5 text-primary-foreground transition-transform group-hover:rotate-12 duration-300" />
             </div>
-            <span className="font-display font-bold text-lg text-foreground">
+            <span className="font-display font-extrabold text-lg text-foreground tracking-tight group-hover:text-primary transition-colors">
               EduProof
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1.5">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   location.pathname === link.href
-                    ? "bg-primary/8 text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    ? "bg-primary/10 text-primary font-semibold shadow-xs"
+                    : "text-muted-foreground hover:text-primary hover:bg-primary/10 hover:shadow-xs hover:-translate-y-0.5 hover:scale-105"
                 }`}
               >
                 {link.label}
@@ -84,7 +84,7 @@ export function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
+                  <Button variant="outline" size="sm" className="gap-2 hover:border-primary/50 transition-all">
                     <User className="w-4 h-4" />
                     <span className="max-w-[120px] truncate">
                       {user.email?.split("@")[0]}
@@ -115,10 +115,10 @@ export function Navbar() {
               </DropdownMenu>
             ) : (
               <>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="hover:bg-secondary transition-all">
                   <Link to="/auth">Log In</Link>
                 </Button>
-                <Button size="sm" asChild>
+                <Button size="sm" asChild className="shadow-sm hover:shadow-md hover:scale-[1.03] transition-all">
                   <Link to="/auth">Sign Up</Link>
                 </Button>
               </>

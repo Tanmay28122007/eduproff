@@ -51,18 +51,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   });
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    try {
+      return !localStorage.getItem(CACHED_USER_KEY);
+    } catch {
+      return false;
+    }
+  });
   const { toast } = useToast();
 
   const fetchUserRole = async (userId: string): Promise<UserRole> => {
     try {
       const cached = localStorage.getItem(`eduproof_cached_role_${userId}`);
       
-      const { data } = await supabase
+      const timeoutPromise = new Promise<any>((resolve) => setTimeout(() => resolve({ data: null }), 1000));
+      const queryPromise = supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId)
         .maybeSingle();
+
+      const res = await Promise.race([queryPromise, timeoutPromise]);
+      const data = res?.data;
 
       const roleVal = (data?.role as UserRole) || null;
       if (roleVal) {
@@ -102,24 +112,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initAuth = async () => {
       try {
-        setLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
+        const timeoutPromise = new Promise<any>((resolve) => 
+          setTimeout(() => resolve({ data: { session: null } }), 1200)
+        );
+        const sessionRes = await Promise.race([
+          supabase.auth.getSession(),
+          timeoutPromise
+        ]);
         if (!isMounted) return;
+
+        const session = sessionRes?.data?.session;
 
         if (session?.user) {
           const userRole = await fetchUserRole(session.user.id);
           if (isMounted) {
             setSession(session as any);
-            setUser((session.user as any));
+            setUser(session.user as any);
             setRole(userRole);
             persistSessionCache(session.user as any, session as any, userRole);
           }
         } else {
-          if (isMounted) {
-            setSession(null);
-            setUser(null);
-            setRole(null);
-            persistSessionCache(null, null, null);
+          // If no active server session found and we have no cached user, clear state
+          if (!localStorage.getItem(CACHED_USER_KEY)) {
+            if (isMounted) {
+              setSession(null);
+              setUser(null);
+              setRole(null);
+              persistSessionCache(null, null, null);
+            }
           }
         }
       } catch (err) {
@@ -167,13 +187,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     selectedRole: "candidate" | "recruiter" | "admin"
   ) => {
     try {
-      const redirectUrl = `${window.location.origin}/`;
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
           }
@@ -182,23 +199,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) return { error };
 
-      if (data.user) {
-        setUser(data.user);
-        setSession(data.session);
-        setRole(selectedRole);
-        persistSessionCache(data.user, data.session, selectedRole);
+      let currentUser = data.user;
+      let currentSession = data.session;
 
-        // Create profile document
-        await supabase.from("profiles").insert({
-          user_id: data.user.id,
+      // If Supabase has not attached a session, auto-authenticate immediately
+      if (!currentSession) {
+        const signInRes = await supabase.auth.signInWithPassword({ email, password });
+        if (signInRes.data.session) {
+          currentUser = signInRes.data.user;
+          currentSession = signInRes.data.session;
+        }
+      }
+
+      if (currentUser) {
+        setUser(currentUser);
+        setSession(currentSession);
+        setRole(selectedRole);
+        persistSessionCache(currentUser, currentSession, selectedRole);
+
+        // Upsert profile document
+        await supabase.from("profiles").upsert({
+          user_id: currentUser.id,
           full_name: fullName,
-        });
+        }, { onConflict: "user_id" });
 
         // Assign user role
-        await supabase.from("user_roles").insert({
-          user_id: data.user.id,
+        await supabase.from("user_roles").upsert({
+          user_id: currentUser.id,
           role: selectedRole,
-        });
+        }, { onConflict: "user_id,role" });
       }
 
       return { error: null };

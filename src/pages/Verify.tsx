@@ -1,10 +1,28 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Layout } from "@/components/layout/Layout";
-import { Upload, FileCheck, Shield, Loader2, Cpu, CheckCircle2, ArrowRight, Share2, Award, Sparkles } from "lucide-react";
+import {
+  Upload,
+  FileCheck,
+  Shield,
+  Loader2,
+  Cpu,
+  CheckCircle2,
+  Share2,
+  Award,
+  Sparkles,
+  Layers,
+  Settings2,
+  Code,
+  AlertCircle,
+  RefreshCw,
+  GitFork,
+  HelpCircle,
+  Database,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -14,36 +32,50 @@ import {
   EvidenceItem,
   VerifierEndorsement,
 } from "@/services/trustEngine";
+import {
+  VerificationSignalWeights,
+  DEFAULT_SIGNAL_WEIGHTS,
+} from "@/services/aiCertificateVerificationEngine";
 import { ConfidenceMeter } from "@/components/trust/ConfidenceMeter";
 import { AIExplainablePanel } from "@/components/trust/AIExplainablePanel";
 import { EvidenceTimeline } from "@/components/trust/EvidenceTimeline";
 import { EvidenceUploader } from "@/components/trust/EvidenceUploader";
 import { HumanEndorsementCard } from "@/components/trust/HumanEndorsementCard";
+import { AICertificateVerificationPipeline } from "@/components/trust/AICertificateVerificationPipeline";
+import { WeightConfigurator } from "@/components/trust/WeightConfigurator";
+import { JSONOutputViewer } from "@/components/trust/JSONOutputViewer";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-const ALLOWED_TYPES = ["application/pdf", "image/png", "image/jpeg"];
-const ALLOWED_EXTENSIONS = ["pdf", "png", "jpg", "jpeg"];
+const ALLOWED_EXTENSIONS = ["pdf", "png", "jpg", "jpeg", "webp"];
 
 const validateFileType = (file: File): boolean => {
   const extension = file.name.split(".").pop()?.toLowerCase() || "";
   if (!ALLOWED_EXTENSIONS.includes(extension)) {
-    toast.error("Please upload a valid PDF or Image file (PDF, PNG, JPG).");
+    toast.error("Please upload a valid PDF or Image file (PDF, PNG, JPG, WEBP).");
     return false;
   }
   return true;
 };
 
 const SCAN_STEPS = [
-  "Running AI Forensic Tamper Detection...",
-  "Parsing OCR & Validating Date/Text Logic...",
-  "Cross-Matching Supporting Evidence Files...",
-  "Querying Public Registries (GitHub, Kaggle, Winner Lists)...",
-  "Verifying Cryptographic Signatures & Hashes...",
-  "Computing Achievement Trust Score (0-100%)...",
+  "1. Sanitizing untrusted file payload & verifying security boundaries...",
+  "2. Performing Document Classification (VALID / NOT_A_CERTIFICATE / UNCERTAIN)...",
+  "3. Executing OCR & Extracting 12 Structured Certificate Metadata Fields...",
+  "4. Running Visual Forensics (Font spacing, alignment, sharpness, compression)...",
+  "5. Running PDF Forensics (Object streams, creation software, revision layers)...",
+  "6. Evaluating Generative AI & Digital Manipulation Probabilities (0-100%)...",
+  "7. Cross-Matching Institutional Issuer & Public Database Registries...",
+  "8. Constructing Traceable Multi-Signal Evidence Graph...",
+  "9. Aggregating Multi-Pillar Verification Confidence Score (0-100)...",
 ];
 
 const Verify = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const analysisCountRef = useRef<number>(1);
+  const latestAnalysisIdRef = useRef<string | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -64,15 +96,46 @@ const Verify = () => {
   const [evidenceItems, setEvidenceItems] = useState<EvidenceItem[]>([]);
   const [endorsements, setEndorsements] = useState<VerifierEndorsement[]>([]);
 
-  // Engine Output
+  // Configurable Weights State
+  const [signalWeights, setSignalWeights] = useState<VerificationSignalWeights>(DEFAULT_SIGNAL_WEIGHTS);
+
+  // Engine Output & Error State
   const [trustResult, setTrustResult] = useState<TrustAnalysisResult | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [activeAnalysisId, setActiveAnalysisId] = useState<string>("");
 
   const MAX_FILE_SIZE = 15 * 1024 * 1024;
+
+  const generateNewAnalysisId = (): string => {
+    const nextNum = String(analysisCountRef.current++).padStart(3, "0");
+    const uniqueSuffix = Math.random().toString(36).substring(2, 6);
+    const id = `analysis_${nextNum}_${uniqueSuffix}`;
+    latestAnalysisIdRef.current = id;
+    setActiveAnalysisId(id);
+    return id;
+  };
+
+  /**
+   * Completely clears previous analysis results and stale form state when a new file is uploaded/selected
+   */
+  const clearPreviousState = () => {
+    setTrustResult(null);
+    setAnalysisError(null);
+    setTitle("");
+    setIssuer("");
+    setCertificateCode("");
+    setStudentName(user?.email?.split("@")[0] || "");
+    setEvidenceItems([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
   };
+
   const handleDragLeave = () => {
     setIsDragging(false);
   };
@@ -81,27 +144,46 @@ const Verify = () => {
     e.preventDefault();
     setIsDragging(false);
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && validateFileType(droppedFile)) setFile(droppedFile);
+    if (droppedFile && validateFileType(droppedFile)) {
+      clearPreviousState();
+      setFile(droppedFile);
+      const newId = generateNewAnalysisId();
+      triggerVerification(droppedFile, newId);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    if (selectedFile && validateFileType(selectedFile)) setFile(selectedFile);
+    if (selectedFile && validateFileType(selectedFile)) {
+      clearPreviousState();
+      setFile(selectedFile);
+      const newId = generateNewAnalysisId();
+      triggerVerification(selectedFile, newId);
+    }
   };
 
-  const handleRunTrustEngine = async () => {
-    if (!title.trim() || !issuer.trim()) {
-      toast.error("Please enter the Achievement Title and Issuing Organization.");
-      return;
-    }
+  const handleReplaceDocument = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFile(null);
+    clearPreviousState();
+  };
 
-    if (file && file.size > MAX_FILE_SIZE) {
+  const triggerVerification = async (
+    targetFile: File | null,
+    analysisIdStr: string,
+    weightsOverride?: VerificationSignalWeights
+  ) => {
+    if (targetFile && targetFile.size > MAX_FILE_SIZE) {
       toast.error("File size exceeds 15MB limit.");
       return;
     }
 
     setIsVerifying(true);
     setScanStepIndex(0);
+    setTrustResult(null);
+    setAnalysisError(null);
+
+    const activeWeights = weightsOverride || signalWeights;
 
     // Step-by-step progress simulation
     const stepInterval = setInterval(() => {
@@ -109,35 +191,51 @@ const Verify = () => {
         if (prev < SCAN_STEPS.length - 1) return prev + 1;
         return prev;
       });
-    }, 450);
+    }, 280);
 
     try {
       const result = await analyzeAchievement({
-        title,
-        issuer,
+        analysisId: analysisIdStr,
+        title: title || targetFile?.name?.replace(/\.[^/.]+$/, "").replace(/_/g, " ") || "Certificate",
+        issuer: issuer || "Issuing Institution",
         certificateCode,
         studentName: studentName || user?.email?.split("@")[0],
         issueDate,
-        file,
+        file: targetFile,
         evidenceItems,
         githubUrl,
         linkedinUrl,
         portfolioUrl,
         endorsements,
+        customWeights: activeWeights,
       });
 
-      setTimeout(() => {
-        clearInterval(stepInterval);
-        setTrustResult(result);
-        setIsVerifying(false);
-        toast.success("Achievement Trust Analysis Complete!");
-      }, 2600);
+      clearInterval(stepInterval);
+
+      // Verify request is still the latest active analysis ID
+      if (analysisIdStr !== latestAnalysisIdRef.current) {
+        console.log(`[ANALYSIS_DISCARDED] Stale analysis response ignored for ${analysisIdStr}`);
+        return;
+      }
+
+      setTrustResult(result);
+      setIsVerifying(false);
+      toast.success(`Forensic Analysis (${analysisIdStr}) Complete!`);
     } catch (err) {
       clearInterval(stepInterval);
       setIsVerifying(false);
-      console.error("Trust Engine Error:", err);
-      toast.error("An error occurred during trust engine analysis.");
+      console.error(`[ANALYSIS_ERROR] Verification failed for ${analysisIdStr}:`, err);
+
+      if (analysisIdStr === latestAnalysisIdRef.current) {
+        setTrustResult(null);
+        setAnalysisError("We could not complete forensic inspection on this document. Please verify the file and try again.");
+      }
     }
+  };
+
+  const handleManualRunClick = () => {
+    const currentId = activeAnalysisId || generateNewAnalysisId();
+    triggerVerification(file, currentId);
   };
 
   const handleSaveAchievement = async () => {
@@ -167,45 +265,28 @@ const Verify = () => {
     }
   };
 
+  const handleApplyNewWeights = (newWeights: VerificationSignalWeights) => {
+    setSignalWeights(newWeights);
+    if (file || title) {
+      const currentId = activeAnalysisId || generateNewAnalysisId();
+      triggerVerification(file, currentId, newWeights);
+    }
+  };
+
   const handleReanalyzeWithEvidence = async (updatedItems: EvidenceItem[]) => {
     setEvidenceItems(updatedItems);
-    if (!trustResult) return;
+    if (!file && !title) return;
 
-    const updatedResult = await analyzeAchievement({
-      title,
-      issuer,
-      certificateCode,
-      studentName,
-      issueDate,
-      file,
-      evidenceItems: updatedItems,
-      githubUrl,
-      linkedinUrl,
-      portfolioUrl,
-      endorsements,
-    });
-    setTrustResult(updatedResult);
-    toast.info("Re-calculated Trust Score with new evidence!");
+    const currentId = activeAnalysisId || generateNewAnalysisId();
+    triggerVerification(file, currentId);
   };
 
   const handleAddEndorsement = async (newEndorsement: VerifierEndorsement) => {
     const updatedEndorsements = [...endorsements, newEndorsement];
     setEndorsements(updatedEndorsements);
-    if (trustResult) {
-      const updatedResult = await analyzeAchievement({
-        title,
-        issuer,
-        certificateCode,
-        studentName,
-        issueDate,
-        file,
-        evidenceItems,
-        githubUrl,
-        linkedinUrl,
-        portfolioUrl,
-        endorsements: updatedEndorsements,
-      });
-      setTrustResult(updatedResult);
+    if (file || title) {
+      const currentId = activeAnalysisId || generateNewAnalysisId();
+      triggerVerification(file, currentId);
     }
   };
 
@@ -216,14 +297,14 @@ const Verify = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto text-center space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5" />
-              EduProof Achievement Trust Engine v2
+              <Cpu className="w-3.5 h-3.5" />
+              Specialized Certificate Forensics AI Engine
             </div>
             <h1 className="font-display text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
-              Verify Authentic Achievement
+              Verify Document Authenticity
             </h1>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-              Never rely solely on editable PDFs. EduProof evaluates achievements across <span className="text-foreground font-semibold">6 independent trust signals</span> to compute an explainable Confidence Score.
+              Multi-signal forensic analysis inspecting document classification, typography consistency, PDF stream layers, AI-generated artifacts, and independent institutional verification.
             </p>
           </div>
         </div>
@@ -232,54 +313,101 @@ const Verify = () => {
       {/* Main Workspace */}
       <section className="py-12 pb-24">
         <div className="container mx-auto px-6 max-w-4xl space-y-8">
+          {/* Active Analysis ID Header */}
+          {activeAnalysisId && (
+            <div className="flex items-center justify-between text-xs text-muted-foreground font-mono bg-secondary/30 px-4 py-2.5 rounded-xl border border-border/40">
+              <span>Active Session: <strong>{activeAnalysisId}</strong></span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">✓ Independent Execution Context</span>
+            </div>
+          )}
+
           {/* Scanning Progress Overlay */}
           {isVerifying && (
             <div className="bg-card rounded-2xl p-10 shadow-soft border border-primary/20 text-center space-y-6 animate-pulse">
-              <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
-                <Cpu className="w-8 h-8 animate-spin" />
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto shadow-inner">
+                <Loader2 className="w-8 h-8 animate-spin" />
               </div>
+
               <div className="space-y-2">
                 <h3 className="font-display text-xl font-bold text-foreground">
-                  Analyzing Achievement Trust Signals...
+                  Running Forensic Engine Pipeline...
                 </h3>
-                <p className="text-sm text-primary font-mono font-medium">
+                <p className="text-xs text-primary font-mono font-medium">
                   {SCAN_STEPS[scanStepIndex]}
                 </p>
               </div>
-              <div className="w-full bg-secondary rounded-full h-2 max-w-md mx-auto overflow-hidden">
-                <div
-                  className="bg-primary h-full transition-all duration-300"
-                  style={{ width: `${((scanStepIndex + 1) / SCAN_STEPS.length) * 100}%` }}
-                />
+
+              <div className="max-w-md mx-auto space-y-2">
+                <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all duration-300 rounded-full"
+                    style={{ width: `${((scanStepIndex + 1) / SCAN_STEPS.length) * 100}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>Step {scanStepIndex + 1} of {SCAN_STEPS.length}</span>
+                  <span>{Math.round(((scanStepIndex + 1) / SCAN_STEPS.length) * 100)}%</span>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Form & Upload Workspace (Show when not analyzed yet or re-editing) */}
+          {/* Error Banner */}
+          {!isVerifying && analysisError && (
+            <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/30 text-center space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-red-500/20 text-red-600 flex items-center justify-center mx-auto">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-display font-bold text-red-700 dark:text-red-400 text-base">
+                  Forensic Analysis Interrupted
+                </h3>
+                <p className="text-sm text-foreground/90 max-w-md mx-auto">
+                  {analysisError}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                className="gap-2 font-semibold text-xs"
+                onClick={() => {
+                  setAnalysisError(null);
+                  if (file) {
+                    const newId = generateNewAnalysisId();
+                    triggerVerification(file, newId);
+                  }
+                }}
+              >
+                <RefreshCw className="w-4 h-4" /> Try Uploading Again
+              </Button>
+            </div>
+          )}
+
+          {/* Form & Upload Workspace */}
           {!isVerifying && (
             <div className="space-y-8">
               {/* Document Upload Area */}
-              <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 space-y-4">
+              <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-xl hover:border-primary/40 transition-all duration-300 space-y-4">
                 <h3 className="font-display font-bold text-foreground text-base flex items-center gap-2">
                   <Upload className="w-4 h-4 text-primary" />
                   1. Achievement Document (Certificate PDF or Image)
                 </h3>
 
                 <div
-                  className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+                  className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
                     isDragging
-                      ? "border-primary bg-primary/5"
+                      ? "border-primary bg-primary/5 scale-[1.01]"
                       : file
-                      ? "border-emerald-500 bg-emerald-500/5"
-                      : "border-border hover:border-primary/40 hover:bg-secondary/20"
+                      ? "border-emerald-500 bg-emerald-500/5 hover:border-emerald-500/80 hover:shadow-md"
+                      : "border-border hover:border-primary/60 hover:bg-secondary/30 hover:scale-[1.005] hover:shadow-md cursor-pointer"
                   }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                 >
                   <input
+                    ref={fileInputRef}
                     type="file"
-                    accept=".pdf,.png,.jpg,.jpeg"
+                    accept=".pdf,.png,.jpg,.jpeg,.webp"
                     onChange={handleFileChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
@@ -296,10 +424,7 @@ const Verify = () => {
                         variant="ghost"
                         size="sm"
                         className="text-xs text-muted-foreground hover:text-foreground"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFile(null);
-                        }}
+                        onClick={handleReplaceDocument}
                       >
                         Replace document
                       </Button>
@@ -313,7 +438,7 @@ const Verify = () => {
                         Drop Certificate PDF or Image here
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Supports PDF, PNG, JPG up to 15MB
+                        Supports PDF, PNG, JPG, WEBP up to 15MB
                       </p>
                     </div>
                   )}
@@ -321,20 +446,20 @@ const Verify = () => {
               </div>
 
               {/* Achievement Metadata Details */}
-              <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 space-y-4">
+              <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-xl hover:border-primary/40 transition-all duration-300 space-y-4">
                 <h3 className="font-display font-bold text-foreground text-base flex items-center gap-2">
                   <Award className="w-4 h-4 text-primary" />
-                  2. Achievement Details
+                  2. Optional Override Metadata Details
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="title" className="text-xs font-medium">
-                      Achievement Title *
+                      Achievement Title / Course Name
                     </Label>
                     <Input
                       id="title"
-                      placeholder="e.g. Winner - Global AI Hackathon 2025"
+                      placeholder="Auto-extracted from document or enter manually"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                     />
@@ -342,11 +467,11 @@ const Verify = () => {
 
                   <div className="space-y-1.5">
                     <Label htmlFor="issuer" className="text-xs font-medium">
-                      Issuing Organization / Organizer *
+                      Issuing Organization / Organizer
                     </Label>
                     <Input
                       id="issuer"
-                      placeholder="e.g. Stanford University / Google"
+                      placeholder="Auto-extracted from document or enter manually"
                       value={issuer}
                       onChange={(e) => setIssuer(e.target.value)}
                     />
@@ -358,7 +483,7 @@ const Verify = () => {
                     </Label>
                     <Input
                       id="studentName"
-                      placeholder="e.g. Alex Morgan"
+                      placeholder="Auto-extracted from document or enter manually"
                       value={studentName}
                       onChange={(e) => setStudentName(e.target.value)}
                     />
@@ -366,7 +491,7 @@ const Verify = () => {
 
                   <div className="space-y-1.5">
                     <Label htmlFor="certificateCode" className="text-xs font-medium">
-                      Certificate ID / Code (if available)
+                      Certificate ID / Serial Number (if available)
                     </Label>
                     <Input
                       id="certificateCode"
@@ -394,52 +519,94 @@ const Verify = () => {
               <Button
                 size="lg"
                 className="w-full h-12 text-base font-semibold gap-2 shadow-lg"
-                onClick={handleRunTrustEngine}
-                disabled={!title || !issuer || isVerifying}
+                onClick={handleManualRunClick}
+                disabled={isVerifying}
               >
                 <Shield className="w-5 h-5" />
-                Analyze Achievement Trust & Calculate Confidence Score
+                Run Certificate Forensics Engine & Verify Authenticity
               </Button>
             </div>
           )}
 
-          {/* Render Trust Results Dashboard when ready */}
+          {/* Render Trust & AI Verification Results Dashboard */}
           {!isVerifying && trustResult && (
             <div className="space-y-8 animate-fadeIn">
-              {/* Confidence Meter */}
-              <ConfidenceMeter
-                score={trustResult.overallConfidenceScore}
-                confidenceLevel={trustResult.confidenceLevel}
-                tamperRisk={trustResult.tamperRisk}
-                tamperProbability={trustResult.tamperProbabilityScore}
-              />
+              <Tabs defaultValue="pipeline" className="w-full space-y-6">
+                <TabsList className="grid grid-cols-4 w-full h-12 bg-secondary/50 p-1 rounded-xl">
+                  <TabsTrigger value="pipeline" className="gap-1.5 text-xs font-bold">
+                    <Layers className="w-3.5 h-3.5" /> Forensics Pipeline
+                  </TabsTrigger>
+                  <TabsTrigger value="explainable" className="gap-1.5 text-xs font-bold">
+                    <HelpCircle className="w-3.5 h-3.5" /> Explainable Audit
+                  </TabsTrigger>
+                  <TabsTrigger value="weights" className="gap-1.5 text-xs font-bold">
+                    <Settings2 className="w-3.5 h-3.5" /> Signal Weights
+                  </TabsTrigger>
+                  <TabsTrigger value="json" className="gap-1.5 text-xs font-bold">
+                    <Code className="w-3.5 h-3.5" /> Sec 24 JSON
+                  </TabsTrigger>
+                </TabsList>
 
-              {/* AI Explainable Panel */}
-              <AIExplainablePanel result={trustResult} />
+                {/* Tab 1: AI Verification Pipeline & Evidence Graph */}
+                <TabsContent value="pipeline" className="space-y-8">
+                  {/* AI Certificate Verification Pipeline UI */}
+                  {trustResult.aiVerificationResult && (
+                    <AICertificateVerificationPipeline result={trustResult.aiVerificationResult} />
+                  )}
 
-              {/* Timeline Visualization */}
-              <EvidenceTimeline timeline={trustResult.timeline} />
+                  {/* Confidence Meter */}
+                  <ConfidenceMeter
+                    score={trustResult.overallConfidenceScore}
+                    confidenceLevel={trustResult.confidenceLevel}
+                    tamperRisk={trustResult.tamperRisk}
+                    tamperProbability={trustResult.tamperProbabilityScore}
+                  />
 
-              {/* Cross Evidence Re-Manager */}
-              <EvidenceUploader
-                evidenceItems={trustResult.evidenceItems}
-                onChange={handleReanalyzeWithEvidence}
-                githubUrl={githubUrl}
-                setGithubUrl={setGithubUrl}
-                linkedinUrl={linkedinUrl}
-                setLinkedinUrl={setLinkedinUrl}
-                portfolioUrl={portfolioUrl}
-                setPortfolioUrl={setPortfolioUrl}
-              />
+                  {/* Timeline Visualization */}
+                  <EvidenceTimeline timeline={trustResult.timeline} />
 
-              {/* Human Endorsements Section */}
-              <HumanEndorsementCard
-                endorsements={trustResult.endorsements}
-                onAddEndorsement={handleAddEndorsement}
-              />
+                  {/* Cross Evidence Re-Manager */}
+                  <EvidenceUploader
+                    evidenceItems={trustResult.evidenceItems}
+                    onChange={handleReanalyzeWithEvidence}
+                    githubUrl={githubUrl}
+                    setGithubUrl={setGithubUrl}
+                    linkedinUrl={linkedinUrl}
+                    setLinkedinUrl={setLinkedinUrl}
+                    portfolioUrl={portfolioUrl}
+                    setPortfolioUrl={setPortfolioUrl}
+                  />
+
+                  {/* Human Endorsements Section */}
+                  <HumanEndorsementCard
+                    endorsements={trustResult.endorsements}
+                    onAddEndorsement={handleAddEndorsement}
+                  />
+                </TabsContent>
+
+                {/* Tab 2: Explainable Trust Analysis */}
+                <TabsContent value="explainable" className="space-y-6">
+                  <AIExplainablePanel result={trustResult} />
+                </TabsContent>
+
+                {/* Tab 3: Configurable Signal Weights */}
+                <TabsContent value="weights" className="space-y-6">
+                  <WeightConfigurator
+                    currentWeights={signalWeights}
+                    onApplyWeights={handleApplyNewWeights}
+                  />
+                </TabsContent>
+
+                {/* Tab 4: Strict Section 24 Structured JSON Payload */}
+                <TabsContent value="json" className="space-y-6">
+                  {trustResult.aiVerificationResult && (
+                    <JSONOutputViewer result={trustResult.aiVerificationResult} />
+                  )}
+                </TabsContent>
+              </Tabs>
 
               {/* Cryptographic Hash & Verification Badge Card */}
-              <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="space-y-1 text-center md:text-left">
                   <h4 className="font-display font-bold text-foreground text-sm">
                     Cryptographic Achievement Anchor

@@ -138,16 +138,16 @@ const Auth = () => {
     <Layout>
       <section className="min-h-[80vh] flex items-center py-16">
         <div className="container mx-auto px-6">
-          <div className="max-w-md mx-auto">
+          <div className="max-w-xl mx-auto bg-card border border-border/70 rounded-3xl p-6 sm:p-12 shadow-xl">
             {/* Logo */}
             <div className="text-center mb-8">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-7 h-7 text-primary" />
+              <div className="w-18 h-18 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5 border border-primary/20 shadow-xs">
+                <Shield className="w-9 h-9 text-primary" />
               </div>
-              <h1 className="font-display text-2xl font-bold text-foreground mb-1">
+              <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight mb-3">
                 {mode === "signup" ? "Create Account" : "Welcome Back"}
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-lg sm:text-xl text-muted-foreground font-medium">
                 {mode === "signup"
                   ? "Join EduProof to get started"
                   : "Sign in to your EduProof account"}
@@ -155,12 +155,12 @@ const Auth = () => {
             </div>
 
             {/* Main Tabs: Log In / Sign Up */}
-            <div className="flex mb-6 bg-secondary rounded-xl p-1">
+            <div className="flex mb-8 bg-secondary/80 rounded-2xl p-1.5 border border-border/60">
               <button
                 onClick={() => { setMode("login"); setError(null); }}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex-1 py-3.5 rounded-xl text-lg sm:text-xl font-bold transition-all ${
                   isLogin
-                    ? "bg-card text-foreground shadow-sm"
+                    ? "bg-card text-foreground shadow-sm scale-[1.02]"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -168,9 +168,9 @@ const Auth = () => {
               </button>
               <button
                 onClick={() => { setMode("signup"); setError(null); }}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex-1 py-3.5 rounded-xl text-lg sm:text-xl font-bold transition-all ${
                   mode === "signup"
-                    ? "bg-card text-foreground shadow-sm"
+                    ? "bg-card text-foreground shadow-sm scale-[1.02]"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -180,32 +180,41 @@ const Auth = () => {
 
             {/* Error Message */}
             {error && (
-              <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+              <div className="mb-6 p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-base sm:text-lg font-semibold text-destructive">
                 {error}
               </div>
             )}
 
             {/* Role Selection Cards (signup only) */}
             {mode === "signup" && (
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                {roles.map((role) => {
-                  const Icon = role.icon;
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                {roles.map((r) => {
+                  const Icon = r.icon;
+                  const isSelected = selectedRole === r.value;
                   return (
                     <button
-                      key={role.value}
+                      key={r.value}
                       type="button"
-                      onClick={() => setSelectedRole(role.value)}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-center ${
-                        selectedRole === role.value
-                          ? "border-primary bg-primary/5 shadow-sm"
-                          : "border-border hover:border-primary/30 bg-card"
+                      onClick={() => setSelectedRole(r.value)}
+                      className={`flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all text-center ${
+                        isSelected
+                          ? "border-primary bg-primary/10 shadow-md scale-[1.02]"
+                          : "border-border/80 hover:border-primary/40 bg-secondary/20 hover:bg-secondary/40"
                       }`}
                     >
-                      <Icon className={`w-6 h-6 ${selectedRole === role.value ? "text-primary" : "text-muted-foreground"}`} />
-                      <span className={`text-sm font-semibold ${selectedRole === role.value ? "text-primary" : "text-foreground"}`}>
-                        {role.label}
+                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-3 ${
+                        isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                      }`}>
+                        <Icon className="w-7 h-7" />
+                      </div>
+                      <span className={`text-lg sm:text-xl font-bold leading-tight ${
+                        isSelected ? "text-primary" : "text-foreground"
+                      }`}>
+                        {r.label}
                       </span>
-                      <span className="text-[11px] text-muted-foreground leading-tight">{role.description}</span>
+                      <span className="text-sm sm:text-base text-muted-foreground mt-1.5 leading-snug">
+                        {r.description}
+                      </span>
                     </button>
                   );
                 })}
@@ -213,41 +222,91 @@ const Auth = () => {
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Dynamic signup fields */}
               {mode === "signup" && selectedRole === "candidate" && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
-                  <Input id="fullName" type="text" placeholder="Enter your full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                <div className="space-y-2.5">
+                  <Label htmlFor="fullName" className="text-lg font-bold text-foreground">
+                    Full Name
+                  </Label>
+                  <Input 
+                    id="fullName" 
+                    type="text" 
+                    placeholder="Enter your full name" 
+                    value={fullName} 
+                    onChange={(e) => setFullName(e.target.value)} 
+                    className="h-14 text-lg px-4 rounded-xl bg-secondary/30 border-border/80 focus:border-primary placeholder:text-base"
+                    required 
+                  />
                 </div>
               )}
 
               {mode === "signup" && selectedRole === "recruiter" && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="companyName" className="text-sm font-medium">Company Name</Label>
-                  <Input id="companyName" type="text" placeholder="Enter company name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required />
+                <div className="space-y-2.5">
+                  <Label htmlFor="companyName" className="text-lg font-bold text-foreground">
+                    Company Name
+                  </Label>
+                  <Input 
+                    id="companyName" 
+                    type="text" 
+                    placeholder="Enter company name" 
+                    value={companyName} 
+                    onChange={(e) => setCompanyName(e.target.value)} 
+                    className="h-14 text-lg px-4 rounded-xl bg-secondary/30 border-border/80 focus:border-primary placeholder:text-base"
+                    required 
+                  />
                 </div>
               )}
 
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-                <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <div className="space-y-2.5">
+                <Label htmlFor="email" className="text-lg font-bold text-foreground">
+                  Email
+                </Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="you@example.com" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  className="h-14 text-lg px-4 rounded-xl bg-secondary/30 border-border/80 focus:border-primary placeholder:text-base"
+                  required 
+                />
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+              <div className="space-y-2.5">
+                <Label htmlFor="password" className="text-lg font-bold text-foreground">
+                  Password
+                </Label>
                 <div className="relative">
-                  <Input id="password" type={showPassword ? "text" : "password"} placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  <Input 
+                    id="password" 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="Enter your password" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    className="h-14 text-lg px-4 pr-12 rounded-xl bg-secondary/30 border-border/80 focus:border-primary placeholder:text-base"
+                    required 
+                    minLength={6} 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)} 
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                  >
+                    {showPassword ? <EyeOff className="w-5.5 h-5.5" /> : <Eye className="w-5.5 h-5.5" />}
                   </button>
                 </div>
               </div>
 
-              <Button type="submit" size="lg" className="w-full" disabled={formLoading}>
+              <Button 
+                type="submit" 
+                size="lg" 
+                className="w-full h-14 text-lg sm:text-xl font-bold rounded-xl mt-3 shadow-md hover:shadow-lg transition-all" 
+                disabled={formLoading}
+              >
                 {formLoading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-6 h-6 animate-spin mr-2" />
                     {mode === "login" ? "Signing In..." : "Creating Account..."}
                   </>
                 ) : (
@@ -256,16 +315,20 @@ const Auth = () => {
               </Button>
             </form>
 
-            <p className="text-center text-sm text-muted-foreground mt-6">
+            <p className="text-center text-base sm:text-lg text-muted-foreground mt-8">
               {mode === "login" ? (
                 <>
                   Don't have an account?{" "}
-                  <button onClick={() => setMode("signup")} className="text-primary font-medium hover:underline">Sign up</button>
+                  <button onClick={() => setMode("signup")} className="text-primary font-bold hover:underline">
+                    Sign up
+                  </button>
                 </>
               ) : (
                 <>
                   Already have an account?{" "}
-                  <button onClick={() => setMode("login")} className="text-primary font-medium hover:underline">Log in</button>
+                  <button onClick={() => setMode("login")} className="text-primary font-bold hover:underline">
+                    Log in
+                  </button>
                 </>
               )}
             </p>

@@ -138,10 +138,10 @@ const HowItWorks = () => {
                   <div className="absolute left-8 top-24 w-0.5 h-[calc(100%-3rem)] bg-border hidden md:block" />
                 )}
 
-                <div className="flex gap-8">
+                <div className="flex gap-8 group">
                   {/* Step Number */}
                   <div className="flex-shrink-0">
-                    <div className="w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center shadow-glow-primary">
+                    <div className="w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center shadow-glow-primary group-hover:scale-115 group-hover:rotate-6 transition-all duration-300">
                       <step.icon className="w-8 h-8 text-primary-foreground" />
                     </div>
                   </div>
@@ -153,13 +153,13 @@ const HowItWorks = () => {
                         Step {step.step}
                       </span>
                     </div>
-                    <h2 className="font-display text-2xl font-bold text-foreground mb-3">
+                    <h2 className="font-display text-2xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors duration-200">
                       {step.title}
                     </h2>
                     <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                       {step.description}
                     </p>
-                    <div className="bg-card rounded-xl p-6 border border-border/50">
+                    <div className="bg-card rounded-2xl p-6 border border-border/70 shadow-soft hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300">
                       <ul className="space-y-3">
                         {step.details.map((detail, i) => (
                           <li key={i} className="flex items-start gap-3">
@@ -193,31 +193,28 @@ const HowItWorks = () => {
             {verificationExamples.map((example) => (
               <div
                 key={example.status}
-                className="bg-card rounded-2xl p-6 shadow-soft border border-border/50"
+                className="group relative bg-card/90 backdrop-blur-sm rounded-2xl p-7 shadow-soft border border-border/70 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-3 hover:border-primary/70 transition-all duration-300 overflow-hidden hover-card-shine cursor-pointer"
               >
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 ${
-                  example.color === 'success' ? 'bg-emerald-500/10' :
-                  example.color === 'accent' ? 'bg-amber-500/10' :
-                  'bg-destructive/10'
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 group-hover:opacity-100 group-hover:h-1.5 transition-all duration-300" />
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-120 group-hover:rotate-6 transition-all duration-300 ${
+                  example.color === 'success' ? 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white' :
+                  example.color === 'accent' ? 'bg-amber-500/10 text-amber-500 group-hover:bg-amber-500 group-hover:text-white' :
+                  'bg-destructive/10 text-destructive group-hover:bg-destructive group-hover:text-white'
                 }`}>
-                  <example.icon className={`w-7 h-7 ${
-                    example.color === 'success' ? 'text-emerald-500' :
-                    example.color === 'accent' ? 'text-amber-500' :
-                    'text-destructive'
-                  }`} />
+                  <example.icon className="w-7 h-7 transition-transform group-hover:scale-110" />
                 </div>
 
-                <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+                <h3 className="font-display text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors duration-200">
                   {example.title}
                 </h3>
-                <p className="text-sm text-muted-foreground mb-4">
+                <p className="text-sm text-muted-foreground mb-5">
                   {example.description}
                 </p>
 
-                <div className="mb-4">
+                <div className="mb-5 p-3 rounded-xl bg-secondary/40 border border-border/40">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">Confidence Score</span>
-                    <span className={`font-bold ${
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Confidence Score</span>
+                    <span className={`font-bold font-display ${
                       example.color === 'success' ? 'text-emerald-500' :
                       example.color === 'accent' ? 'text-amber-500' :
                       'text-destructive'
@@ -226,14 +223,14 @@ const HowItWorks = () => {
                   <Progress value={example.trustScore} className="h-2" />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {example.checks.map((check) => (
-                    <div key={check.name} className="flex items-center justify-between text-sm">
+                    <div key={check.name} className="flex items-center justify-between text-xs font-medium">
                       <span className="text-muted-foreground">{check.name}</span>
                       {check.passed ? (
-                        <span className="text-emerald-500 font-medium">✓</span>
+                        <span className="text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">✓ Passed</span>
                       ) : (
-                        <span className="text-destructive font-medium">✗</span>
+                        <span className="text-destructive bg-destructive/10 px-2 py-0.5 rounded-full font-bold">✗ Failed</span>
                       )}
                     </div>
                   ))}

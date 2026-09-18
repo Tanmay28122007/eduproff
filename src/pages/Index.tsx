@@ -142,8 +142,10 @@ const Index = () => {
       </section>
 
       {/* Demo Trust Score Result */}
-      <section className="py-20 bg-secondary/50">
-        <div className="container mx-auto px-6">
+      <section className="py-20 bg-secondary/40 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="container mx-auto px-6 relative z-10">
           <div className="text-center max-w-xl mx-auto mb-12">
             <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
               See Achievement Trust Engine in Action
@@ -154,37 +156,48 @@ const Index = () => {
           </div>
 
           <div className="max-w-lg mx-auto">
-            <div className="bg-card rounded-2xl p-8 shadow-card border border-border space-y-6">
-              <div className="flex items-start justify-between">
+            <div className="group relative bg-card/90 backdrop-blur-md rounded-3xl p-8 shadow-card hover:shadow-2xl hover:shadow-emerald-500/20 border border-border/80 hover:border-emerald-500/70 hover:-translate-y-3 transition-all duration-300 space-y-6 overflow-hidden hover-card-shine cursor-pointer">
+              {/* Corner ambient light glow */}
+              <div className="absolute -right-10 -top-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/35 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
+              
+              <div className="flex items-start justify-between relative z-10">
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">Verified Achievement</p>
-                  <p className="font-display font-bold text-foreground text-xl">Global Hackathon First Place</p>
+                  <p className="text-xs text-primary uppercase tracking-wider font-semibold mb-1 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Verified Achievement
+                  </p>
+                  <p className="font-display font-bold text-foreground text-xl group-hover:text-primary transition-colors duration-200">Global Hackathon First Place</p>
                   <p className="text-sm text-muted-foreground">Stanford AI Innovation Challenge</p>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 group-hover:scale-120 group-hover:rotate-6 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 shadow-sm">
                   <CheckCircle className="w-6 h-6" />
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 relative z-10">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-medium">Verification Confidence Score</span>
                   <span className="font-display font-bold text-emerald-600 dark:text-emerald-400 text-lg">96% Exceptional Trust</span>
                 </div>
-                <div className="w-full h-2.5 bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: "96%" }}></div>
+                <div className="w-full h-3 bg-secondary rounded-full overflow-hidden p-0.5 border border-border/40">
+                  <div className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000 group-hover:brightness-110" style={{ width: "96%" }}></div>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-secondary/40 border border-border/40 text-xs space-y-2">
-                <span className="font-bold text-foreground block">✔ Verified Signals:</span>
+              <div className="p-4.5 rounded-2xl bg-secondary/50 border border-border/60 text-xs space-y-2 relative z-10 group-hover:border-emerald-500/40 transition-colors">
+                <span className="font-bold text-foreground block flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle className="w-3.5 h-3.5" /> Verified Signals:
+                </span>
                 <p className="text-muted-foreground">· Document image forensics show 0% font tampering</p>
                 <p className="text-muted-foreground">· GitHub project commits match event timeframe</p>
                 <p className="text-muted-foreground">· Winner announcement indexed on organizer portal</p>
               </div>
 
-              <Button className="w-full" asChild>
-                <Link to="/verify">Try Verification Hub</Link>
+              <Button className="w-full shadow-md group-hover:shadow-lg transition-all duration-300" size="lg" asChild>
+                <Link to="/verify" className="flex items-center justify-center gap-2">
+                  <span>Try Verification Hub</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+                </Link>
               </Button>
             </div>
           </div>
@@ -192,31 +205,58 @@ const Index = () => {
       </section>
 
       {/* Workflow Section */}
-      <section className="py-24">
-        <div className="container mx-auto px-6">
+      <section className="py-24 relative overflow-hidden">
+        {/* Subtle background ambient circles */}
+        <div className="absolute top-1/3 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="container mx-auto px-6 relative z-10">
           <div className="text-center max-w-xl mx-auto mb-16">
-            <h2 className="font-display text-3xl font-bold text-foreground mb-4">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
+              <Sparkles className="w-3.5 h-3.5" /> Simple & Transparent
+            </div>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
               4 Steps to Verifiable Trust
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-base">
               How EduProof evaluates authentic achievements from raw evidence to confidence scores.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7">
             {workflowSteps.map((step, index) => {
               const Icon = step.icon;
               return (
-                <div key={index} className="bg-card rounded-2xl p-6 shadow-soft border border-border/50 flex flex-col">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-6">
-                    <Icon className="w-6 h-6" />
+                <div 
+                  key={index} 
+                  className="group relative bg-card/80 backdrop-blur-sm rounded-2xl p-7 shadow-soft border border-border/70 hover:shadow-2xl hover:shadow-primary/25 hover:-translate-y-3 hover:border-primary/80 hover:bg-card transition-all duration-300 ease-out flex flex-col justify-between overflow-hidden hover-card-shine cursor-pointer"
+                >
+                  {/* Top glowing gradient line on hover */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 group-hover:opacity-100 group-hover:h-1.5 transition-all duration-300" />
+                  
+                  {/* Ambient corner blur glow */}
+                  <div className="absolute -right-8 -top-8 w-28 h-28 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/25 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
+
+                  <div>
+                    <div className="w-13 h-13 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-6 group-hover:scale-115 group-hover:rotate-6 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300">
+                      <Icon className="w-6.5 h-6.5 transition-transform duration-300 group-hover:rotate-6" />
+                    </div>
+                    
+                    <h3 className="font-display font-bold text-foreground text-lg mb-2.5 group-hover:text-primary transition-colors duration-200 leading-snug">
+                      {step.title}
+                    </h3>
+                    
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {step.description}
+                    </p>
                   </div>
-                  <h3 className="font-display font-bold text-foreground text-lg mb-2">
-                    {step.title}
-                  </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed flex-1">
-                    {step.description}
-                  </p>
+
+                  <div className="mt-6 pt-4 border-t border-border/40 flex items-center justify-between text-xs font-semibold text-primary">
+                    <span className="group-hover:translate-x-1 transition-transform">Explore step</span>
+                    <div className="w-6 h-6 rounded-full bg-primary/10 group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center group-hover:scale-110 group-hover:shadow-sm transition-all duration-300">
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -225,22 +265,30 @@ const Index = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 bg-secondary/30">
+      <section className="py-20 bg-secondary/30 relative">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {benefits.map((benefit, index) => {
               const Icon = benefit.icon;
               return (
-                <div key={index} className="bg-card rounded-2xl p-6 shadow-soft border border-border/50">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-4">
-                    <Icon className="w-5 h-5" />
+                <div 
+                  key={index} 
+                  className="group relative bg-card/90 backdrop-blur-sm rounded-2xl p-7 shadow-soft border border-border/70 hover:shadow-2xl hover:shadow-emerald-500/25 hover:-translate-y-3 hover:border-emerald-500/80 hover:bg-card transition-all duration-300 ease-out overflow-hidden flex flex-col justify-between hover-card-shine cursor-pointer"
+                >
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500/20 via-emerald-500 to-emerald-500/20 opacity-0 group-hover:opacity-100 group-hover:h-1.5 transition-all duration-300" />
+                  <div className="absolute -right-8 -bottom-8 w-28 h-28 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/25 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
+
+                  <div>
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-5 group-hover:scale-115 group-hover:rotate-6 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300">
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <h3 className="font-display font-bold text-foreground text-xl mb-2.5 group-hover:text-primary transition-colors duration-200">
+                      {benefit.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {benefit.description}
+                    </p>
                   </div>
-                  <h3 className="font-display font-bold text-foreground text-lg mb-2">
-                    {benefit.title}
-                  </h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {benefit.description}
-                  </p>
                 </div>
               );
             })}
@@ -249,10 +297,10 @@ const Index = () => {
       </section>
 
       {/* Target Audiences */}
-      <section className="py-24">
+      <section className="py-24 relative overflow-hidden">
         <div className="container mx-auto px-6">
           <div className="text-center max-w-xl mx-auto mb-16">
-            <h2 className="font-display text-3xl font-bold text-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
               Built for Students & Recruiters
             </h2>
             <p className="text-muted-foreground">
@@ -264,22 +312,29 @@ const Index = () => {
             {audiences.map((audience, index) => {
               const Icon = audience.icon;
               return (
-                <div key={index} className="bg-card rounded-2xl p-8 shadow-card border border-border flex flex-col justify-between">
-                  <div className="space-y-4 mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                      <Icon className="w-6 h-6" />
+                <div 
+                  key={index} 
+                  className="group relative bg-card/90 backdrop-blur-md rounded-3xl p-8 shadow-card border border-border/70 hover:shadow-2xl hover:shadow-primary/25 hover:-translate-y-3 hover:border-primary/80 transition-all duration-300 flex flex-col justify-between overflow-hidden hover-card-shine cursor-pointer"
+                >
+                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 group-hover:opacity-100 group-hover:h-2 transition-all duration-300" />
+                  <div className="absolute -right-12 -top-12 w-36 h-36 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/25 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
+
+                  <div className="space-y-4 mb-8 relative z-10">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-115 group-hover:rotate-6 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300">
+                      <Icon className="w-7 h-7" />
                     </div>
-                    <h3 className="font-display font-bold text-foreground text-xl">
+                    <h3 className="font-display font-bold text-foreground text-2xl group-hover:text-primary transition-colors duration-200">
                       {audience.title}
                     </h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
+                    <p className="text-muted-foreground text-base leading-relaxed">
                       {audience.description}
                     </p>
                   </div>
-                  <Button variant="outline" className="w-full gap-2" asChild>
-                    <Link to={audience.to}>
-                      {audience.cta}
-                      <ArrowRight className="w-4 h-4" />
+
+                  <Button variant="outline" className="w-full gap-2 border-border/80 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary group-hover:shadow-lg transition-all duration-300" size="lg" asChild>
+                    <Link to={audience.to} className="flex items-center justify-center">
+                      <span>{audience.cta}</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
                     </Link>
                   </Button>
                 </div>

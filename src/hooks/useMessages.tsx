@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -16,39 +16,45 @@ export interface Message {
 export interface Conversation {
   user_id: string;
   full_name: string | null;
+  role?: string;
   last_message: string;
   last_time: string;
   unread_count: number;
+  is_terminated?: boolean;
 }
 
 export function useMessages() {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const activePartnerRef = useRef<string | null>(null);
 
   const fetchConversations = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
+    if (!user) {
+      setConversations([]);
+      setLoading(false);
+      return;
+    }
 
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+
+      const timeoutPromise = new Promise<any>((resolve) => 
+        setTimeout(() => resolve({ data: [] }), 2000)
+      );
+      const queryPromise = supabase
         .from("messages")
         .select("*")
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching conversations:", error);
-        setLoading(false);
-        return;
-      }
-
-      const rawMsgs = (data as Message[]) || [];
+      const res = await Promise.race([queryPromise, timeoutPromise]);
+      const rawMsgs = (res?.data as Message[]) || [];
 
       // Group by conversation partner
       const convMap = new Map<string, { msgs: Message[]; unread: number }>();
-      rawMsgs.forEach(msg => {
+      rawMsgs.forEach((msg) => {
         const partnerId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
         if (!convMap.has(partnerId)) {
           convMap.set(partnerId, { msgs: [], unread: 0 });
@@ -59,28 +65,37 @@ export function useMessages() {
       });
 
       const partnerIds = [...convMap.keys()];
-      let profileMap = new Map<string, string | null>();
+      const profileMap = new Map<string, { name: string | null; role?: string }>();
 
       if (partnerIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("user_id, full_name")
-          .in("user_id", partnerIds);
+        const [profRes, roleRes] = await Promise.all([
+          supabase.from("profiles").select("user_id, full_name").in("user_id", partnerIds),
+          supabase.from("user_roles").select("user_id, role").in("user_id", partnerIds),
+        ]);
 
-        (profiles || []).forEach(p => {
-          profileMap.set(p.user_id, p.full_name);
+        const rolesObj: Record<string, string> = {};
+        (roleRes.data || []).forEach((r) => { rolesObj[r.user_id] = r.role; });
+
+        (profRes.data || []).forEach((p) => {
+          profileMap.set(p.user_id, {
+            name: p.full_name,
+            role: rolesObj[p.user_id] || "user",
+          });
         });
       }
 
-      const convList: Conversation[] = partnerIds.map(pid => {
+      const convList: Conversation[] = partnerIds.map((pid) => {
         const entry = convMap.get(pid)!;
         const latest = entry.msgs[0];
+        const isTerminated = localStorage.getItem(`eduproof_ended_chat_${user.id}_${pid}`) === "true";
         return {
           user_id: pid,
-          full_name: profileMap.get(pid) || null,
+          full_name: profileMap.get(pid)?.name || null,
+          role: profileMap.get(pid)?.role || "user",
           last_message: latest.content,
           last_time: latest.created_at,
           unread_count: entry.unread,
+          is_terminated: isTerminated,
         };
       });
 
@@ -94,7 +109,8 @@ export function useMessages() {
   }, [user]);
 
   const fetchThread = useCallback(async (partnerId: string) => {
-    if (!user) return;
+    if (!user) return [];
+    activePartnerRef.current = partnerId;
 
     try {
       const { data, error } = await supabase
@@ -107,7 +123,7 @@ export function useMessages() {
 
       if (error) {
         console.error("Error fetching thread:", error);
-        return;
+        return [];
       }
 
       const thread = (data as Message[]) || [];
@@ -115,17 +131,25 @@ export function useMessages() {
 
       // Mark unread messages as read
       const unreadIds = thread
-        .filter(m => m.receiver_id === user.id && !m.read)
-        .map(m => m.id);
+        .filter((m) => m.receiver_id === user.id && !m.read)
+        .map((m) => m.id);
 
       if (unreadIds.length > 0) {
-        await supabase
+        supabase
           .from("messages")
           .update({ read: true })
-          .in("id", unreadIds);
+          .in("id", unreadIds)
+          .then(() => {
+            setConversations((prev) =>
+              prev.map((c) => (c.user_id === partnerId ? { ...c, unread_count: 0 } : c))
+            );
+          });
       }
+
+      return thread;
     } catch (error) {
       console.error("Error fetching thread:", error);
+      return [];
     }
   }, [user]);
 
@@ -133,14 +157,20 @@ export function useMessages() {
     if (!user || !content.trim()) return { error: "Empty message" };
 
     try {
-      const { error } = await supabase.from("messages").insert({
+      const payload = {
         sender_id: user.id,
         receiver_id: receiverId,
         content: content.trim(),
         read: false,
-      });
+      };
+
+      const { data, error } = await supabase.from("messages").insert(payload).select().single();
 
       if (error) return { error: error.message };
+
+      if (data) {
+        setMessages((prev) => [...prev, data as Message]);
+      }
 
       await fetchConversations();
       return { error: null };
@@ -149,21 +179,58 @@ export function useMessages() {
     }
   }, [user, fetchConversations]);
 
+  const markAsRead = useCallback(async (messageId: string) => {
+    try {
+      await supabase.from("messages").update({ read: true }).eq("id", messageId);
+      setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, read: true } : m)));
+    } catch (e) {
+      console.error("Error marking as read:", e);
+    }
+  }, []);
+
+  const endChat = useCallback(async (partnerId: string) => {
+    if (!user) return { error: "Not authenticated" };
+
+    try {
+      localStorage.setItem(`eduproof_ended_chat_${user.id}_${partnerId}`, "true");
+
+      // Delete messages between user and partner in Supabase
+      const { error } = await supabase
+        .from("messages")
+        .delete()
+        .or(
+          `and(sender_id.eq.${user.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${user.id})`
+        );
+
+      setMessages([]);
+      await fetchConversations();
+      return { error: error ? error.message : null };
+    } catch (err: any) {
+      console.error("Error ending chat:", err);
+      return { error: err.message || "Failed to end chat" };
+    }
+  }, [user, fetchConversations]);
+
   useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
+    if (user) {
+      fetchConversations();
+    }
+  }, [user, fetchConversations]);
 
   // Realtime subscription using Supabase Channel
   useEffect(() => {
     if (!user) return;
 
     const channel = supabase
-      .channel("messages-realtime")
+      .channel("messages-realtime-sync")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
+        { event: "*", schema: "public", table: "messages" },
         () => {
           fetchConversations();
+          if (activePartnerRef.current) {
+            fetchThread(activePartnerRef.current);
+          }
         }
       )
       .subscribe();
@@ -171,7 +238,16 @@ export function useMessages() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, fetchConversations]);
+  }, [user, fetchConversations, fetchThread]);
 
-  return { conversations, messages, loading, fetchConversations, fetchThread, sendMessage };
+  return { 
+    conversations, 
+    messages, 
+    loading, 
+    fetchConversations, 
+    fetchThread, 
+    sendMessage, 
+    markAsRead, 
+    endChat 
+  };
 }
