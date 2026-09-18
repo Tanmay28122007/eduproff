@@ -137,17 +137,17 @@ const Auth = () => {
   return (
     <Layout>
       <section className="min-h-[80vh] flex items-center py-16">
-        <div className="container mx-auto px-6">
-          <div className="max-w-xl mx-auto bg-card border border-border/70 rounded-3xl p-6 sm:p-12 shadow-xl">
+        <div className="container mx-auto px-4">
+          <div className="max-w-[400px] mx-auto bg-card border border-border/70 rounded-2xl p-6 shadow-md">
             {/* Logo */}
-            <div className="text-center mb-8">
-              <div className="w-18 h-18 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5 border border-primary/20 shadow-xs">
-                <Shield className="w-9 h-9 text-primary" />
+            <div className="text-center mb-5">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2.5 border border-primary/20 shadow-xs">
+                <Shield className="w-5 h-5 text-primary" />
               </div>
-              <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight mb-3">
+              <h1 className="font-display text-xl font-bold text-foreground tracking-tight mb-0.5">
                 {mode === "signup" ? "Create Account" : "Welcome Back"}
               </h1>
-              <p className="text-lg sm:text-xl text-muted-foreground font-medium">
+              <p className="text-xs text-muted-foreground">
                 {mode === "signup"
                   ? "Join EduProof to get started"
                   : "Sign in to your EduProof account"}
@@ -155,12 +155,12 @@ const Auth = () => {
             </div>
 
             {/* Main Tabs: Log In / Sign Up */}
-            <div className="flex mb-8 bg-secondary/80 rounded-2xl p-1.5 border border-border/60">
+            <div className="flex mb-4 bg-secondary/80 rounded-xl p-1 border border-border/50">
               <button
                 onClick={() => { setMode("login"); setError(null); }}
-                className={`flex-1 py-3.5 rounded-xl text-lg sm:text-xl font-bold transition-all ${
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   isLogin
-                    ? "bg-card text-foreground shadow-sm scale-[1.02]"
+                    ? "bg-card text-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -168,9 +168,9 @@ const Auth = () => {
               </button>
               <button
                 onClick={() => { setMode("signup"); setError(null); }}
-                className={`flex-1 py-3.5 rounded-xl text-lg sm:text-xl font-bold transition-all ${
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   mode === "signup"
-                    ? "bg-card text-foreground shadow-sm scale-[1.02]"
+                    ? "bg-card text-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -180,14 +180,14 @@ const Auth = () => {
 
             {/* Error Message */}
             {error && (
-              <div className="mb-6 p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-base sm:text-lg font-semibold text-destructive">
+              <div className="mb-4 p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-xs font-medium text-destructive">
                 {error}
               </div>
             )}
 
             {/* Role Selection Cards (signup only) */}
             {mode === "signup" && (
-              <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="grid grid-cols-2 gap-2.5 mb-4">
                 {roles.map((r) => {
                   const Icon = r.icon;
                   const isSelected = selectedRole === r.value;
@@ -196,23 +196,23 @@ const Auth = () => {
                       key={r.value}
                       type="button"
                       onClick={() => setSelectedRole(r.value)}
-                      className={`flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all text-center ${
+                      className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all text-center ${
                         isSelected
-                          ? "border-primary bg-primary/10 shadow-md scale-[1.02]"
-                          : "border-border/80 hover:border-primary/40 bg-secondary/20 hover:bg-secondary/40"
+                          ? "border-primary bg-primary/10 shadow-xs"
+                          : "border-border/70 hover:border-primary/40 bg-secondary/20 hover:bg-secondary/40"
                       }`}
                     >
-                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-3 ${
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-1.5 ${
                         isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                       }`}>
-                        <Icon className="w-7 h-7" />
+                        <Icon className="w-4 h-4" />
                       </div>
-                      <span className={`text-lg sm:text-xl font-bold leading-tight ${
+                      <span className={`text-xs font-semibold leading-tight ${
                         isSelected ? "text-primary" : "text-foreground"
                       }`}>
                         {r.label}
                       </span>
-                      <span className="text-sm sm:text-base text-muted-foreground mt-1.5 leading-snug">
+                      <span className="text-[10px] text-muted-foreground mt-0.5 leading-tight line-clamp-1">
                         {r.description}
                       </span>
                     </button>
@@ -222,11 +222,11 @@ const Auth = () => {
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {/* Dynamic signup fields */}
               {mode === "signup" && selectedRole === "candidate" && (
-                <div className="space-y-2.5">
-                  <Label htmlFor="fullName" className="text-lg font-bold text-foreground">
+                <div className="space-y-1">
+                  <Label htmlFor="fullName" className="text-xs font-medium text-foreground">
                     Full Name
                   </Label>
                   <Input 
@@ -235,15 +235,15 @@ const Auth = () => {
                     placeholder="Enter your full name" 
                     value={fullName} 
                     onChange={(e) => setFullName(e.target.value)} 
-                    className="h-14 text-lg px-4 rounded-xl bg-secondary/30 border-border/80 focus:border-primary placeholder:text-base"
+                    className="h-9 text-xs px-3 rounded-lg bg-secondary/30 border-border/80 focus:border-primary placeholder:text-xs"
                     required 
                   />
                 </div>
               )}
 
               {mode === "signup" && selectedRole === "recruiter" && (
-                <div className="space-y-2.5">
-                  <Label htmlFor="companyName" className="text-lg font-bold text-foreground">
+                <div className="space-y-1">
+                  <Label htmlFor="companyName" className="text-xs font-medium text-foreground">
                     Company Name
                   </Label>
                   <Input 
@@ -252,14 +252,14 @@ const Auth = () => {
                     placeholder="Enter company name" 
                     value={companyName} 
                     onChange={(e) => setCompanyName(e.target.value)} 
-                    className="h-14 text-lg px-4 rounded-xl bg-secondary/30 border-border/80 focus:border-primary placeholder:text-base"
+                    className="h-9 text-xs px-3 rounded-lg bg-secondary/30 border-border/80 focus:border-primary placeholder:text-xs"
                     required 
                   />
                 </div>
               )}
 
-              <div className="space-y-2.5">
-                <Label htmlFor="email" className="text-lg font-bold text-foreground">
+              <div className="space-y-1">
+                <Label htmlFor="email" className="text-xs font-medium text-foreground">
                   Email
                 </Label>
                 <Input 
@@ -268,13 +268,13 @@ const Auth = () => {
                   placeholder="you@example.com" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
-                  className="h-14 text-lg px-4 rounded-xl bg-secondary/30 border-border/80 focus:border-primary placeholder:text-base"
+                  className="h-9 text-xs px-3 rounded-lg bg-secondary/30 border-border/80 focus:border-primary placeholder:text-xs"
                   required 
                 />
               </div>
 
-              <div className="space-y-2.5">
-                <Label htmlFor="password" className="text-lg font-bold text-foreground">
+              <div className="space-y-1">
+                <Label htmlFor="password" className="text-xs font-medium text-foreground">
                   Password
                 </Label>
                 <div className="relative">
@@ -284,29 +284,29 @@ const Auth = () => {
                     placeholder="Enter your password" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
-                    className="h-14 text-lg px-4 pr-12 rounded-xl bg-secondary/30 border-border/80 focus:border-primary placeholder:text-base"
+                    className="h-9 text-xs px-3 pr-9 rounded-lg bg-secondary/30 border-border/80 focus:border-primary placeholder:text-xs"
                     required 
                     minLength={6} 
                   />
                   <button 
                     type="button" 
                     onClick={() => setShowPassword(!showPassword)} 
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
                   >
-                    {showPassword ? <EyeOff className="w-5.5 h-5.5" /> : <Eye className="w-5.5 h-5.5" />}
+                    {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
 
               <Button 
                 type="submit" 
-                size="lg" 
-                className="w-full h-14 text-lg sm:text-xl font-bold rounded-xl mt-3 shadow-md hover:shadow-lg transition-all" 
+                size="sm" 
+                className="w-full h-9.5 text-xs font-semibold rounded-lg mt-2 shadow-xs hover:shadow transition-all" 
                 disabled={formLoading}
               >
                 {formLoading ? (
                   <>
-                    <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
                     {mode === "login" ? "Signing In..." : "Creating Account..."}
                   </>
                 ) : (
@@ -315,18 +315,18 @@ const Auth = () => {
               </Button>
             </form>
 
-            <p className="text-center text-base sm:text-lg text-muted-foreground mt-8">
+            <p className="text-center text-xs text-muted-foreground mt-4">
               {mode === "login" ? (
                 <>
                   Don't have an account?{" "}
-                  <button onClick={() => setMode("signup")} className="text-primary font-bold hover:underline">
+                  <button onClick={() => setMode("signup")} className="text-primary font-semibold hover:underline">
                     Sign up
                   </button>
                 </>
               ) : (
                 <>
                   Already have an account?{" "}
-                  <button onClick={() => setMode("login")} className="text-primary font-bold hover:underline">
+                  <button onClick={() => setMode("login")} className="text-primary font-semibold hover:underline">
                     Log in
                   </button>
                 </>
