@@ -172,21 +172,48 @@ const Student = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-16 bg-secondary/30 rounded-2xl border border-border/50 space-y-4">
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
-                    <FileCheck className="w-8 h-8 text-muted-foreground" />
+                <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 shadow-card p-6 sm:p-10">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                    <div className="md:col-span-7 space-y-4 text-center md:text-left">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                        <Award className="w-3.5 h-3.5" />
+                        Start Your Verified Portfolio
+                      </span>
+                      <h3 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+                        No achievements uploaded yet
+                      </h3>
+                      <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                        Upload your diplomas, hackathon certificates, or project evidence. Our autonomous AI engine analyzes fonts, checks public records, and issues a tamper-proof trust report.
+                      </p>
+                      <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                        <Button variant="hero" size="lg" asChild>
+                          <Link to="/verify" className="gap-2">
+                            <Upload className="w-4 h-4" />
+                            Upload & Verify Achievement
+                          </Link>
+                        </Button>
+                        <Button variant="outline" size="lg" asChild>
+                          <Link to="/demo">Try Interactive Demo</Link>
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="md:col-span-5">
+                      <div className="relative rounded-2xl overflow-hidden border border-border/60 shadow-lg group">
+                        <img
+                          src="/images/candidate-verified.jpg"
+                          alt="Verified Candidate Credential Example"
+                          className="w-full h-56 sm:h-64 object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-background/90 backdrop-blur-md text-xs font-semibold text-foreground border border-border/60 shadow-sm">
+                            <FileCheck className="w-3.5 h-3.5 text-emerald-500" />
+                            98% Trust Rating
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-display text-xl font-semibold text-foreground mb-1">
-                      No achievements uploaded yet
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Upload your first certificate or project evidence to generate an explainable trust score!
-                    </p>
-                  </div>
-                  <Button variant="hero" asChild>
-                    <Link to="/verify">Upload & Verify Achievement</Link>
-                  </Button>
                 </div>
               )}
             </div>

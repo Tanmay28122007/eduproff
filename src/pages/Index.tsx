@@ -65,16 +65,20 @@ const audiences = [
   {
     icon: GraduationCap,
     title: "Students & Candidates",
-    description: "Verify your authentic achievements with multi-source proof and build a shareable verified portfolio.",
+    description: "Verify your authentic achievements with multi-source proof, generate ATS-friendly CVs, and build a shareable verified portfolio.",
     cta: "Verify Your Achievement",
     to: "/auth",
+    image: "/images/candidate-verified.jpg",
+    badge: "ATS-Compliant & Verified Commits",
   },
   {
     icon: Briefcase,
     title: "Recruiters & Employers",
-    description: "Make hiring decisions with confidence using multi-layer evidence screening and tamper risk reports.",
+    description: "Make hiring decisions with confidence using multi-layer evidence screening, cryptographic checks, and tamper risk reports.",
     cta: "Screen Verified Talent",
     to: "/auth",
+    image: "/images/recruiter-screening.jpg",
+    badge: "98% Confidence Multi-Signal Audit",
   },
 ];
 
@@ -193,62 +197,103 @@ const Index = () => {
 
       {/* Demo Trust Score Result */}
       <section className="py-20 bg-secondary/40 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="container mx-auto px-6 relative z-10">
-          <div className="text-center max-w-xl mx-auto mb-12">
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
+              <Sparkles className="w-3.5 h-3.5" />
+              Live Evidence Engine
+            </div>
+            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-3">
               See Achievement Trust Engine in Action
             </h2>
-            <p className="text-muted-foreground">
-              Multi-layered analysis providing explainable positive signals and risk warnings.
+            <p className="text-muted-foreground text-base">
+              Multi-layered analysis providing explainable positive signals, tamper forensics, and risk warnings.
             </p>
           </div>
 
-          <div className="max-w-lg mx-auto">
-            <div className="group relative bg-card/90 backdrop-blur-md rounded-3xl p-8 shadow-card hover:shadow-2xl hover:shadow-emerald-500/20 border border-border/80 hover:border-emerald-500/70 hover:-translate-y-3 transition-all duration-300 space-y-6 overflow-hidden hover-card-shine cursor-pointer">
-              {/* Corner ambient light glow */}
-              <div className="absolute -right-10 -top-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/35 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
-              
-              <div className="flex items-start justify-between relative z-10">
-                <div>
-                  <p className="text-xs text-primary uppercase tracking-wider font-semibold mb-1 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Verified Achievement
-                  </p>
-                  <p className="font-display font-bold text-foreground text-xl group-hover:text-primary transition-colors duration-200">Global Hackathon First Place</p>
-                  <p className="text-sm text-muted-foreground">Stanford AI Innovation Challenge</p>
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Visual AI Forensic Scanner Showcase */}
+            <div className="lg:col-span-7 group relative bg-card/90 backdrop-blur-md rounded-3xl p-4 sm:p-6 shadow-card hover:shadow-2xl hover:shadow-primary/20 border border-border/80 hover:border-primary/60 transition-all duration-500 overflow-hidden hover-card-shine">
+              <div className="relative rounded-2xl overflow-hidden border border-border/60 bg-muted/30">
+                <img
+                  src="/images/forensic-scanner.jpg"
+                  alt="AI Forensic Document Analysis"
+                  className="w-full h-80 sm:h-96 object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent pointer-events-none" />
+                
+                {/* Floating telemetry pills */}
+                <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-background/90 backdrop-blur-md border border-border/70 text-xs font-semibold text-foreground shadow-sm">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    AI Optical Forensics: 99.8% Clean
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-background/90 backdrop-blur-md border border-border/70 text-xs font-semibold text-foreground shadow-sm">
+                    <Lock className="w-3 h-3 text-primary" />
+                    SHA-256 Anchored
+                  </span>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 group-hover:scale-120 group-hover:rotate-6 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 shadow-sm">
-                  <CheckCircle className="w-6 h-6" />
+
+                <div className="absolute bottom-4 left-4 right-4 bg-background/90 backdrop-blur-md rounded-xl p-3 border border-border/70 shadow-sm flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Stanford AI Innovation Challenge 2026</p>
+                    <p className="text-[11px] text-muted-foreground">Original PDF · 0% Font Splicing · Metadata Matching</p>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                    PASSED
+                  </span>
                 </div>
               </div>
+            </div>
 
-              <div className="space-y-2 relative z-10">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground font-medium">Verification Confidence Score</span>
-                  <span className="font-display font-bold text-emerald-600 dark:text-emerald-400 text-lg">96% Exceptional Trust</span>
+            {/* Interactive Trust Score Card */}
+            <div className="lg:col-span-5">
+              <div className="group relative bg-card/90 backdrop-blur-md rounded-3xl p-8 shadow-card hover:shadow-2xl hover:shadow-emerald-500/20 border border-border/80 hover:border-emerald-500/70 hover:-translate-y-2 transition-all duration-300 space-y-6 overflow-hidden hover-card-shine cursor-pointer">
+                {/* Corner ambient light glow */}
+                <div className="absolute -right-10 -top-10 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/35 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
+                
+                <div className="flex items-start justify-between relative z-10">
+                  <div>
+                    <p className="text-xs text-primary uppercase tracking-wider font-semibold mb-1 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Verified Achievement
+                    </p>
+                    <p className="font-display font-bold text-foreground text-xl group-hover:text-primary transition-colors duration-200">Global Hackathon First Place</p>
+                    <p className="text-sm text-muted-foreground">Stanford AI Innovation Challenge</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 group-hover:scale-120 group-hover:rotate-6 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 shadow-sm">
+                    <CheckCircle className="w-6 h-6" />
+                  </div>
                 </div>
-                <div className="w-full h-3 bg-secondary rounded-full overflow-hidden p-0.5 border border-border/40">
-                  <div className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000 group-hover:brightness-110" style={{ width: "96%" }}></div>
+
+                <div className="space-y-2 relative z-10">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground font-medium">Verification Confidence Score</span>
+                    <span className="font-display font-bold text-emerald-600 dark:text-emerald-400 text-lg">96% Exceptional Trust</span>
+                  </div>
+                  <div className="w-full h-3 bg-secondary rounded-full overflow-hidden p-0.5 border border-border/40">
+                    <div className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000 group-hover:brightness-110" style={{ width: "96%" }}></div>
+                  </div>
                 </div>
-              </div>
 
-              <div className="p-4.5 rounded-2xl bg-secondary/50 border border-border/60 text-xs space-y-2 relative z-10 group-hover:border-emerald-500/40 transition-colors">
-                <span className="font-bold text-foreground block flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                  <CheckCircle className="w-3.5 h-3.5" /> Verified Signals:
-                </span>
-                <p className="text-muted-foreground">· Document image forensics show 0% font tampering</p>
-                <p className="text-muted-foreground">· GitHub project commits match event timeframe</p>
-                <p className="text-muted-foreground">· Winner announcement indexed on organizer portal</p>
-              </div>
+                <div className="p-4.5 rounded-2xl bg-secondary/50 border border-border/60 text-xs space-y-2 relative z-10 group-hover:border-emerald-500/40 transition-colors">
+                  <span className="font-bold text-foreground block flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle className="w-3.5 h-3.5" /> Verified Signals:
+                  </span>
+                  <p className="text-muted-foreground">· Document image forensics show 0% font tampering</p>
+                  <p className="text-muted-foreground">· GitHub project commits match event timeframe</p>
+                  <p className="text-muted-foreground">· Winner announcement indexed on organizer portal</p>
+                </div>
 
-              <Button className="w-full shadow-md group-hover:shadow-lg transition-all duration-300" size="lg" asChild>
-                <Link to="/verify" className="flex items-center justify-center gap-2">
-                  <span>Try Verification Hub</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
-                </Link>
-              </Button>
+                <Button className="w-full shadow-md group-hover:shadow-lg transition-all duration-300" size="lg" asChild>
+                  <Link to="/verify" className="flex items-center justify-center gap-2">
+                    <span>Try Verification Hub</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -358,16 +403,32 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {audiences.map((audience, index) => {
               const Icon = audience.icon;
               return (
                 <div 
                   key={index} 
-                  className="group relative bg-card/90 backdrop-blur-md rounded-3xl p-8 shadow-card border border-border/70 hover:shadow-2xl hover:shadow-primary/25 hover:-translate-y-3 hover:border-primary/80 transition-all duration-300 flex flex-col justify-between overflow-hidden hover-card-shine cursor-pointer"
+                  className="group relative bg-card/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-card border border-border/70 hover:shadow-2xl hover:shadow-primary/25 hover:-translate-y-2.5 hover:border-primary/80 transition-all duration-300 flex flex-col justify-between overflow-hidden hover-card-shine cursor-pointer"
                 >
                   <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary/20 via-primary to-primary/20 opacity-0 group-hover:opacity-100 group-hover:h-2 transition-all duration-300" />
                   <div className="absolute -right-12 -top-12 w-36 h-36 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/25 group-hover:scale-125 transition-all duration-500 pointer-events-none" />
+
+                  {/* Image Preview Banner */}
+                  <div className="relative mb-6 overflow-hidden rounded-2xl border border-border/60 shadow-sm group-hover:border-primary/50 transition-colors">
+                    <img 
+                      src={audience.image} 
+                      alt={audience.title} 
+                      className="w-full h-52 sm:h-60 object-cover group-hover:scale-105 transition-transform duration-500" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-card/95 via-card/25 to-transparent pointer-events-none" />
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-background/85 backdrop-blur-md text-xs font-semibold text-foreground border border-border/60 shadow-sm">
+                        <CheckCircle className="w-3.5 h-3.5 text-primary" />
+                        {audience.badge}
+                      </span>
+                    </div>
+                  </div>
 
                   <div className="space-y-4 mb-8 relative z-10">
                     <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-115 group-hover:rotate-6 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-xl group-hover:shadow-primary/30 transition-all duration-300">

@@ -296,6 +296,33 @@ const Demo = () => {
                 </div>
               </div>
             )}
+
+            {/* Empty State Visual Preview */}
+            {!result && (
+              <div className="bg-card/80 backdrop-blur-md rounded-2xl p-6 border border-border/70 shadow-sm overflow-hidden group hover:border-primary/50 transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Interactive Engine Ready
+                  </span>
+                  <span className="text-xs text-muted-foreground">Select a code above or type one to scan</span>
+                </div>
+                <div className="relative rounded-xl overflow-hidden border border-border/60">
+                  <img
+                    src="/images/forensic-scanner.jpg"
+                    alt="AI Optical Document Forensics"
+                    className="w-full h-56 sm:h-64 object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/25 to-transparent pointer-events-none" />
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-foreground">Forensic & Tamper Diagnostics</p>
+                      <p className="text-[11px] text-muted-foreground">0% Font Tampering · Verified Commits · Real-Time Trust Scoring</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

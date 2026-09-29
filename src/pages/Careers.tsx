@@ -37,7 +37,7 @@ const Careers = () => {
               Join Our Mission 🚀
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              At EduProof, we're building the future of multi-source achievement verification.
+              At EduProof, we're building the future of multi-source achievement verification and AI-driven trust.
             </p>
             <Button variant="hero" size="xl" asChild>
               <a href="#positions">
@@ -45,6 +45,27 @@ const Careers = () => {
                 <ArrowRight className="w-5 h-5" />
               </a>
             </Button>
+
+            {/* Team Showcase Visual */}
+            <div className="mt-14 max-w-4xl mx-auto group relative rounded-3xl overflow-hidden border border-border/80 bg-card/90 shadow-2xl p-3 sm:p-4 hover:border-primary/60 transition-all duration-500 hover-card-shine">
+              <div className="relative rounded-2xl overflow-hidden border border-border/50">
+                <img
+                  src="/images/team-collaboration.jpg"
+                  alt="EduProof AI & Engineering Team Collaborating"
+                  className="w-full h-64 sm:h-80 md:h-[400px] object-cover group-hover:scale-[1.02] transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-background/90 backdrop-blur-md text-xs font-semibold text-foreground border border-border/60">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Global Distributed Engineering & AI Research
+                  </span>
+                  <span className="text-xs text-muted-foreground hidden sm:block">
+                    San Francisco · London · Remote
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

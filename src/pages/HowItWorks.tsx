@@ -124,6 +124,27 @@ const HowItWorks = () => {
               Never rely on editable PDFs alone. EduProof verifies authentic achievements across 6 independent trust pillars to calculate an explainable Confidence Score.
             </p>
           </div>
+
+          {/* Hero Architecture Visual Banner */}
+          <div className="mt-12 max-w-4xl mx-auto group relative rounded-3xl overflow-hidden border border-border/80 bg-card/90 shadow-2xl p-3 sm:p-4 hover:border-primary/60 transition-all duration-500 hover-card-shine">
+            <div className="relative rounded-2xl overflow-hidden border border-border/50">
+              <img 
+                src="/images/pipeline-architecture.jpg" 
+                alt="Multi-Layer Verification Architecture Flow"
+                className="w-full h-64 sm:h-80 md:h-96 object-cover group-hover:scale-105 transition-transform duration-700" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-background/90 backdrop-blur-md text-xs font-semibold text-foreground border border-border/60">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Real-Time Multi-Signal Telemetry
+                </span>
+                <span className="text-xs text-muted-foreground hidden sm:block">
+                  Optical Forensics · GitHub Commits · Cryptographic Hashes
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -159,7 +180,7 @@ const HowItWorks = () => {
                     <p className="text-muted-foreground text-lg leading-relaxed mb-6">
                       {step.description}
                     </p>
-                    <div className="bg-card rounded-2xl p-6 border border-border/70 shadow-soft hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300">
+                    <div className="bg-card rounded-2xl p-6 border border-border/70 shadow-soft hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 space-y-4">
                       <ul className="space-y-3">
                         {step.details.map((detail, i) => (
                           <li key={i} className="flex items-start gap-3">
@@ -168,6 +189,38 @@ const HowItWorks = () => {
                           </li>
                         ))}
                       </ul>
+
+                      {/* Visual demonstration in Step 2 */}
+                      {step.step === 2 && (
+                        <div className="mt-4 rounded-xl overflow-hidden border border-border/60 shadow-sm relative group/img">
+                          <img 
+                            src="/images/forensic-scanner.jpg" 
+                            alt="Optical forensics inspection demo" 
+                            className="w-full h-48 sm:h-60 object-cover group-hover/img:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent pointer-events-none" />
+                          <div className="absolute bottom-3 left-3 px-3 py-1 rounded-lg bg-background/90 backdrop-blur-md text-xs font-semibold text-foreground border border-border/60 shadow-sm flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            Active Forensic Inspection: Font Tamper & Layout Integrity
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Visual demonstration in Step 4 */}
+                      {step.step === 4 && (
+                        <div className="mt-4 rounded-xl overflow-hidden border border-border/60 shadow-sm relative group/img">
+                          <img 
+                            src="/hero-trust-visual.jpg" 
+                            alt="Holographic verified credential certificate demo" 
+                            className="w-full h-48 sm:h-60 object-cover group-hover/img:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent pointer-events-none" />
+                          <div className="absolute bottom-3 left-3 px-3 py-1 rounded-lg bg-background/90 backdrop-blur-md text-xs font-semibold text-foreground border border-border/60 shadow-sm flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            Explainable Verification Certificate & Confidence Score
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

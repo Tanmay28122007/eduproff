@@ -346,18 +346,52 @@ const Recruiter = () => {
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : filteredCertificates.length === 0 ? (
-            <div className="bg-card rounded-2xl p-12 shadow-soft border border-border/50 text-center">
-              <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-8 h-8 text-muted-foreground" />
+            <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 shadow-card p-6 sm:p-10">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                <div className="md:col-span-7 space-y-4 text-center md:text-left">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                    <Users className="w-3.5 h-3.5" />
+                    Talent Screening Radar
+                  </span>
+                  <h3 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+                    {searchQuery || statusFilter !== "all" 
+                      ? "No matching credentials found" 
+                      : "No verified candidate records yet"}
+                  </h3>
+                  <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                    {searchQuery || statusFilter !== "all"
+                      ? "Try searching for a different name, skill, or issuer to locate verified talent."
+                      : "As candidates upload and verify their achievements via EduProof, their cryptographic trust reports and ATS-compliant CVs will appear in this directory."}
+                  </p>
+                  <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                    <Button variant="hero" size="lg" asChild>
+                      <Link to="/verify" className="gap-2">
+                        <Search className="w-4 h-4" />
+                        Verify a Direct Candidate PDF
+                      </Link>
+                    </Button>
+                    <Button variant="outline" size="lg" asChild>
+                      <Link to="/demo">Test Demo Profiles</Link>
+                    </Button>
+                  </div>
+                </div>
+                <div className="md:col-span-5">
+                  <div className="relative rounded-2xl overflow-hidden border border-border/60 shadow-lg group">
+                    <img
+                      src="/images/recruiter-screening.jpg"
+                      alt="Recruiter Screening Verified Candidates"
+                      className="w-full h-56 sm:h-64 object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-background/90 backdrop-blur-md text-xs font-semibold text-foreground border border-border/60">
+                        <CheckCircle className="w-3.5 h-3.5 text-primary" />
+                        Multi-Signal Candidate Screening
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                No certificates found
-              </h3>
-              <p className="text-muted-foreground">
-                {searchQuery || statusFilter !== "all" 
-                  ? "Try adjusting your search or filters" 
-                  : "No verified certificates available yet"}
-              </p>
             </div>
           ) : (
             <div className="space-y-4">
