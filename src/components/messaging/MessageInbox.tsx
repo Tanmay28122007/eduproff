@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMessages, Message } from "@/hooks/useMessages";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,7 +71,7 @@ export function MessageInbox({ canMessageRoles, initialUserId }: MessageInboxPro
   useEffect(() => {
     if (!user) return;
     loadContacts();
-  }, [user, hookConversations, initialUserId]);
+  }, [user, loadContacts]);
 
   // When selectedUser changes, load their thread
   useEffect(() => {
@@ -85,7 +85,7 @@ export function MessageInbox({ canMessageRoles, initialUserId }: MessageInboxPro
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentThread]);
 
-  const loadContacts = async () => {
+  const loadContacts = useCallback(async () => {
     if (!user) return;
     try {
       setLoadingContacts(true);
@@ -157,7 +157,7 @@ export function MessageInbox({ canMessageRoles, initialUserId }: MessageInboxPro
     } finally {
       setLoadingContacts(false);
     }
-  };
+  }, [user, hookConversations, initialUserId, isRecruiter, canMessageRoles, selectedUser]);
 
   const handleSend = async () => {
     if (!selectedUser || !replyText.trim() || sending) return;
@@ -171,8 +171,8 @@ export function MessageInbox({ canMessageRoles, initialUserId }: MessageInboxPro
       } else {
         setReplyText("");
       }
-    } catch (err: any) {
-      toast.error(err.message || "Failed to send message");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to send message");
     } finally {
       setSending(false);
     }
@@ -275,8 +275,8 @@ export function MessageInbox({ canMessageRoles, initialUserId }: MessageInboxPro
         setEndChatDialogOpen(false);
         loadContacts();
       }
-    } catch (err: any) {
-      toast.error(err.message || "An error occurred while ending the chat.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "An error occurred while ending the chat.");
     } finally {
       setIsEndingChat(false);
     }

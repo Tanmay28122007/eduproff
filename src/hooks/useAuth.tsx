@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -65,30 +65,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUserRole = async (userId: string): Promise<UserRole> => {
     try {
       const cached = localStorage.getItem(`eduproof_cached_role_${userId}`);
-      
-      const timeoutPromise = new Promise<any>((resolve) => setTimeout(() => resolve({ data: null }), 1000));
-      const queryPromise = supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle();
-
+      const timeoutPromise = new Promise<{ data: null }>((resolve) => setTimeout(() => resolve({ data: null }), 1000));
+      const queryPromise = supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle();
       const res = await Promise.race([queryPromise, timeoutPromise]);
-      const data = res?.data;
-
-      const roleVal = (data?.role as UserRole) || null;
+      const roleVal = (res?.data?.role as UserRole) || null;
       if (roleVal) {
         localStorage.setItem(`eduproof_cached_role_${userId}`, roleVal);
         return roleVal;
       }
-
-      if (cached) return cached as UserRole;
-
-      return "candidate";
-    } catch (error) {
-      console.error("Error fetching user role:", error);
-      const cached = localStorage.getItem(`eduproof_cached_role_${userId}`);
       return (cached as UserRole) || "candidate";
+    } catch {
+      return (localStorage.getItem(`eduproof_cached_role_${userId}`) as UserRole) || "candidate";
     }
   };
 
@@ -97,24 +84,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (u && s) {
         localStorage.setItem(CACHED_USER_KEY, JSON.stringify(u));
         localStorage.setItem(CACHED_SESSION_KEY, JSON.stringify(s));
-        if (r && u.id) {
-          localStorage.setItem(`eduproof_cached_role_${u.id}`, r);
-        }
+        if (r && u.id) localStorage.setItem(`eduproof_cached_role_${u.id}`, r);
       } else {
         localStorage.removeItem(CACHED_USER_KEY);
         localStorage.removeItem(CACHED_SESSION_KEY);
       }
-    } catch (e) {
-      console.error("Error persisting session cache:", e);
+    } catch {
+      // Storage access disabled or restricted in private browsing
     }
   };
+
+  const updateAuthState = useCallback((newUser: User | null, newSession: Session | null, newRole: UserRole) => {
+    setUser(newUser);
+    setSession(newSession);
+    setRole(newRole);
+    persistSessionCache(newUser, newSession, newRole);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
 
     const initAuth = async () => {
       try {
-        const timeoutPromise = new Promise<any>((resolve) => 
+        const timeoutPromise = new Promise<{ data: { session: null } }>((resolve) => 
           setTimeout(() => resolve({ data: { session: null } }), 1200)
         );
         const sessionRes = await Promise.race([
@@ -123,26 +115,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ]);
         if (!isMounted) return;
 
-        const session = sessionRes?.data?.session;
-
-        if (session?.user) {
-          const userRole = await fetchUserRole(session.user.id);
-          if (isMounted) {
-            setSession(session as any);
-            setUser(session.user as any);
-            setRole(userRole);
-            persistSessionCache(session.user as any, session as any, userRole);
-          }
-        } else {
-          // If no active server session found and we have no cached user, clear state
-          if (!localStorage.getItem(CACHED_USER_KEY)) {
-            if (isMounted) {
-              setSession(null);
-              setUser(null);
-              setRole(null);
-              persistSessionCache(null, null, null);
-            }
-          }
+        const serverSession = sessionRes?.data?.session;
+        if (serverSession?.user) {
+          const userRole = await fetchUserRole(serverSession.user.id);
+          if (isMounted) updateAuthState(serverSession.user, serverSession, userRole);
+        } else if (!localStorage.getItem(CACHED_USER_KEY)) {
+          if (isMounted) updateAuthState(null, null, null);
         }
       } catch (err) {
         console.error("Auth init error:", err);
@@ -153,24 +131,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       if (!isMounted) return;
-
-      if (session?.user) {
-        const userRole = await fetchUserRole(session.user.id);
+      if (currentSession?.user) {
+        const userRole = await fetchUserRole(currentSession.user.id);
         if (isMounted) {
-          setSession(session as any);
-          setUser((session.user as any));
-          setRole(userRole);
-          persistSessionCache(session.user as any, session as any, userRole);
+          updateAuthState(currentSession.user, currentSession, userRole);
           setLoading(false);
         }
       } else if (event === "SIGNED_OUT") {
         if (isMounted) {
-          setSession(null);
-          setUser(null);
-          setRole(null);
-          persistSessionCache(null, null, null);
+          updateAuthState(null, null, null);
           setLoading(false);
         }
       }
@@ -180,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [updateAuthState]);
 
   const signUp = async (
     email: string,
@@ -233,32 +204,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       return { error: null };
-    } catch (error: any) {
-      return { error: error as Error };
+    } catch (error) {
+      return { error: error instanceof Error ? error : new Error(String(error)) };
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { error, role: null };
 
       let userRole: UserRole = "candidate";
       if (data.user) {
-        setUser(data.user);
-        setSession(data.session);
         userRole = await fetchUserRole(data.user.id);
-        setRole(userRole);
-        persistSessionCache(data.user, data.session, userRole);
+        updateAuthState(data.user, data.session, userRole);
       }
 
       return { error: null, role: userRole };
-    } catch (error: any) {
-      return { error: error as Error, role: null };
+    } catch (error) {
+      return { error: error instanceof Error ? error : new Error(String(error)), role: null };
     }
   };
 

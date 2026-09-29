@@ -25,7 +25,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   // Resolve role cleanly without hanging on infinite spinner
   const effectiveRole =
     role ||
-    (user ? (localStorage.getItem(`eduproof_cached_role_${user.id}`) as any) || "candidate" : null);
+    (user ? (localStorage.getItem(`eduproof_cached_role_${user.id}`) as "candidate" | "recruiter" | "admin" | null) || "candidate" : null);
 
   if (allowedRoles && allowedRoles.length > 0 && effectiveRole && !allowedRoles.includes(effectiveRole)) {
     if (effectiveRole === "admin") return <Navigate to="/admin" replace />;

@@ -125,8 +125,9 @@ const Auth = () => {
       } else {
         await handleUserLogin();
       }
-    } catch (err: any) {
-      setError(formatAuthError(err.message || "An unexpected error occurred"));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An unexpected error occurred";
+      setError(formatAuthError(message));
     } finally {
       setFormLoading(false);
     }

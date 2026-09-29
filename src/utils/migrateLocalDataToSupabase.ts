@@ -40,17 +40,17 @@ export async function transferLocalDataToSupabase(): Promise<MigrationSummary[]>
   // 1. Transfer Issued Certificates (Seed + Local Storage)
   const issuedCertSummary: MigrationSummary = { table: "issued_certificates", transferred: 0, skipped: 0, errors: [] };
   try {
-    let localIssued: any[] = [];
+    let localIssued: { certificate_id?: string; course_name?: string; student_name?: string; issue_date?: string }[] = [];
     try {
       const raw = localStorage.getItem("eduproof_firestore_issued_certificates");
       if (raw) localIssued = JSON.parse(raw);
-    } catch (_err) {
-      // Local storage not populated or corrupt
+    } catch {
+      // Local storage not populated or invalid JSON
     }
 
     const allIssued = [...SEED_ISSUED_CERTIFICATES];
     for (const item of localIssued) {
-      if (!allIssued.some((c) => c.certificate_id?.toLowerCase() === item.certificate_id?.toLowerCase())) {
+      if (item.certificate_id && !allIssued.some((c) => c.certificate_id?.toLowerCase() === item.certificate_id?.toLowerCase())) {
         allIssued.push({
           certificate_id: item.certificate_id,
           course_name: item.course_name || "General Course",
@@ -70,8 +70,8 @@ export async function transferLocalDataToSupabase(): Promise<MigrationSummary[]>
         issuedCertSummary.transferred++;
       }
     }
-  } catch (err: any) {
-    issuedCertSummary.errors.push(err.message || String(err));
+  } catch (err) {
+    issuedCertSummary.errors.push(err instanceof Error ? err.message : String(err));
   }
   results.push(issuedCertSummary);
 
@@ -83,7 +83,7 @@ export async function transferLocalDataToSupabase(): Promise<MigrationSummary[]>
       const logs = JSON.parse(raw);
       if (Array.isArray(logs) && logs.length > 0) {
         for (const log of logs) {
-          const logPayload: any = {
+          const logPayload = {
             certificate_id: log.certificate_id || "UNKNOWN",
             recruiter_id: log.recruiter_id || log.user_id,
             status: log.status || "verified",
@@ -101,8 +101,8 @@ export async function transferLocalDataToSupabase(): Promise<MigrationSummary[]>
         }
       }
     }
-  } catch (err: any) {
-    logSummary.errors.push(err.message || String(err));
+  } catch (err) {
+    logSummary.errors.push(err instanceof Error ? err.message : String(err));
   }
   results.push(logSummary);
 
@@ -111,5 +111,5 @@ export async function transferLocalDataToSupabase(): Promise<MigrationSummary[]>
 
 // Attach to window for easy manual trigger from DevTools if needed
 if (typeof window !== "undefined") {
-  (window as any).transferEduProofDataToSupabase = transferLocalDataToSupabase;
+  (window as unknown as Record<string, unknown>).transferEduProofDataToSupabase = transferLocalDataToSupabase;
 }

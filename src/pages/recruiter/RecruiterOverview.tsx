@@ -122,7 +122,7 @@ const RecruiterOverview = () => {
         if (!nonCandidateSet.has(c.user_id)) candidateIdSet.add(c.user_id);
       });
 
-      const profileMap = new Map<string, any>();
+      const profileMap = new Map<string, Record<string, unknown>>();
       (profilesData || []).forEach(p => profileMap.set(p.user_id, p));
 
       const certMap = new Map<string, { hasVerified: boolean; issuer: string | null }>();

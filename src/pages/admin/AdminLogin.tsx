@@ -50,9 +50,8 @@ const AdminLogin = () => {
         return;
       }
 
-      navigate("/admin");
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
     } finally {
       setLoading(false);
     }

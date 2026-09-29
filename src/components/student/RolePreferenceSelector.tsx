@@ -60,7 +60,7 @@ export function RolePreferenceSelector() {
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ role_preference: preference } as any)
+      .update({ role_preference: preference } as Record<string, unknown>)
       .eq("user_id", user.id);
     setSaving(false);
     if (error) {

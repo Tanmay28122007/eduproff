@@ -40,7 +40,7 @@ export function useMessages() {
     try {
       setLoading(true);
 
-      const timeoutPromise = new Promise<any>((resolve) => 
+      const timeoutPromise = new Promise<{ data: Message[] }>((resolve) => 
         setTimeout(() => resolve({ data: [] }), 2000)
       );
       const queryPromise = supabase
@@ -174,8 +174,8 @@ export function useMessages() {
 
       await fetchConversations();
       return { error: null };
-    } catch (err: any) {
-      return { error: err.message || "Failed to send message" };
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : "Failed to send message" };
     }
   }, [user, fetchConversations]);
 
@@ -205,9 +205,9 @@ export function useMessages() {
       setMessages([]);
       await fetchConversations();
       return { error: error ? error.message : null };
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error ending chat:", err);
-      return { error: err.message || "Failed to end chat" };
+      return { error: err instanceof Error ? err.message : "Failed to end chat" };
     }
   }, [user, fetchConversations]);
 

@@ -53,7 +53,7 @@ export function getCertificates(): Certificate[] {
     return certificates ? JSON.parse(certificates) : [];
 }
 
-export function getActivityLogs(): any[] {
+export function getActivityLogs(): unknown[] {
     // Placeholder for activity logs, can be implemented as needed
     return [];
 }

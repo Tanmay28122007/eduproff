@@ -6,43 +6,23 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function safeFormatDate(
-  dateInput: any,
-  options?: Intl.DateTimeFormatOptions,
-  fallback: string = "—"
-): string {
-  if (!dateInput) return fallback;
-  try {
-    const d = new Date(dateInput);
-    if (isNaN(d.getTime())) return fallback;
-    return d.toLocaleDateString(undefined, options);
-  } catch {
-    return fallback;
-  }
+function parseDate(input: unknown): Date | null {
+  if (!input) return null;
+  const d = new Date(input as string | number | Date);
+  return isNaN(d.getTime()) ? null : d;
 }
 
-export function safeFormatDateTime(
-  dateInput: any,
-  options?: Intl.DateTimeFormatOptions,
-  fallback: string = "—"
-): string {
-  if (!dateInput) return fallback;
-  try {
-    const d = new Date(dateInput);
-    if (isNaN(d.getTime())) return fallback;
-    return d.toLocaleString(undefined, options);
-  } catch {
-    return fallback;
-  }
+export function safeFormatDate(input: unknown, options?: Intl.DateTimeFormatOptions, fallback = "—"): string {
+  const d = parseDate(input);
+  return d ? d.toLocaleDateString(undefined, options) : fallback;
 }
 
-export function safeTimeAgo(dateInput: any, fallback: string = "Recently"): string {
-  if (!dateInput) return fallback;
-  try {
-    const d = new Date(dateInput);
-    if (isNaN(d.getTime())) return fallback;
-    return formatDistanceToNow(d, { addSuffix: true });
-  } catch {
-    return fallback;
-  }
+export function safeFormatDateTime(input: unknown, options?: Intl.DateTimeFormatOptions, fallback = "—"): string {
+  const d = parseDate(input);
+  return d ? d.toLocaleString(undefined, options) : fallback;
+}
+
+export function safeTimeAgo(input: unknown, fallback = "Recently"): string {
+  const d = parseDate(input);
+  return d ? formatDistanceToNow(d, { addSuffix: true }) : fallback;
 }

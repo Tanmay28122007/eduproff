@@ -155,7 +155,7 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({
         <div className="flex flex-col sm:flex-row gap-2">
           <select
             value={newType}
-            onChange={(e) => setNewType(e.target.value as any)}
+            onChange={(e) => setNewType(e.target.value as EvidenceItem["type"])}
             className="text-xs h-9 px-3 rounded-md border border-input bg-background text-foreground"
           >
             <option value="email">Registration / Acceptance Email</option>
