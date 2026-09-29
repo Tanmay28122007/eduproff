@@ -1,4 +1,7 @@
+import { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { 
   Shield, 
   Lock, 
@@ -11,555 +14,895 @@ import {
   Globe, 
   Share2, 
   Database,
-  UserCheck
+  UserCheck,
+  Search,
+  Printer,
+  Copy,
+  Check,
+  ExternalLink,
+  ChevronRight,
+  Eye,
+  FileCheck,
+  Building,
+  KeyRound,
+  Trash2,
+  DownloadCloud,
+  LucideIcon
 } from "lucide-react";
+import { toast } from "sonner";
+
+interface SectionMeta {
+  id: string;
+  title: string;
+  shortTitle: string;
+  icon: LucideIcon;
+  summary: string;
+}
+
+const SECTIONS: SectionMeta[] = [
+  {
+    id: "section-1",
+    title: "1. Introduction & Governance",
+    shortTitle: "Introduction",
+    icon: Shield,
+    summary: "EduProof protects data integrity and user privacy under decentralized credential standards."
+  },
+  {
+    id: "section-2",
+    title: "2. Information We Collect",
+    shortTitle: "Data Collected",
+    icon: Database,
+    summary: "Account credentials, uploaded certificates, verification telemetry, and forensic metadata."
+  },
+  {
+    id: "section-3",
+    title: "3. How We Use Your Information",
+    shortTitle: "Data Usage",
+    icon: FileText,
+    summary: "Processing credential verification, generating trust scores, and preventing credential fraud."
+  },
+  {
+    id: "section-4",
+    title: "4. AI & Automated Processing",
+    shortTitle: "AI & Models",
+    icon: Cpu,
+    summary: "OCR and multi-modal models parse certificates in isolated memory without public model retraining."
+  },
+  {
+    id: "section-5",
+    title: "5. Information From Public Sources",
+    shortTitle: "Public Evidence",
+    icon: Globe,
+    summary: "Cross-validating against public institutional registries, GitHub, and hackathon leaderboards."
+  },
+  {
+    id: "section-6",
+    title: "6. Data Sharing & Processors",
+    shortTitle: "Data Sharing",
+    icon: Share2,
+    summary: "Zero sale of personal data. Limited sharing with cloud providers and approved recruiters only."
+  },
+  {
+    id: "section-7",
+    title: "7. Cryptographic Data Security",
+    shortTitle: "Security & Encryption",
+    icon: Lock,
+    summary: "TLS 1.3 in transit, AES-256 at rest, and SHA-256 immutable trust hashes."
+  },
+  {
+    id: "section-8",
+    title: "8. Data Retention & Deletion",
+    shortTitle: "Retention",
+    icon: Clock,
+    summary: "Records retained only while your account is active, with instant full deletion upon request."
+  },
+  {
+    id: "section-9",
+    title: "9. Your Privacy Rights (GDPR & CCPA)",
+    shortTitle: "Your Rights",
+    icon: UserCheck,
+    summary: "Right to access, portable download, rectification, and complete erasure of personal data."
+  },
+  {
+    id: "section-10",
+    title: "10. Cookies & Local Storage",
+    shortTitle: "Cookies & Storage",
+    icon: KeyRound,
+    summary: "Used strictly for secure session persistence, dark mode preference, and offline caching."
+  },
+  {
+    id: "section-11",
+    title: "11. Third-Party Integrations",
+    shortTitle: "Third Parties",
+    icon: ExternalLink,
+    summary: "Third-party services (Firebase, Supabase) operate under their respective enterprise security standards."
+  },
+  {
+    id: "section-12",
+    title: "12. International Data Transfers",
+    shortTitle: "International",
+    icon: Globe,
+    summary: "Cross-border transfers protected by Standard Contractual Clauses (SCCs) and strong encryption."
+  },
+  {
+    id: "section-13",
+    title: "13. Children & Education Privacy",
+    shortTitle: "Children's Privacy",
+    icon: Building,
+    summary: "Compliant with FERPA & COPPA guidelines; not targeted at children under 13 without consent."
+  },
+  {
+    id: "section-14",
+    title: "14. Policy Updates & History",
+    shortTitle: "Policy Updates",
+    icon: Clock,
+    summary: "Changes posted with version timestamps. Material changes announced via in-app notification."
+  },
+  {
+    id: "section-15",
+    title: "15. Contact Data Protection Officer",
+    shortTitle: "Contact DPO",
+    icon: Mail,
+    summary: "Direct contact channel for privacy inquiries and data subject requests (SLA: 48 hours)."
+  },
+  {
+    id: "section-16",
+    title: "16. Important Disclaimers",
+    shortTitle: "Disclaimers",
+    icon: AlertTriangle,
+    summary: "Confidence scores reflect multi-signal algorithmic assessments, not official government degrees."
+  },
+  {
+    id: "section-17",
+    title: "17. Consent & Acknowledgment",
+    shortTitle: "Consent",
+    icon: CheckCircle2,
+    summary: "By accessing EduProof, you agree to this transparent data processing framework."
+  }
+];
+
+const EXECUTIVE_HIGHLIGHTS = [
+  {
+    icon: Shield,
+    title: "Zero Data Selling",
+    desc: "We will never sell, rent, or monetize your personal identity, resume credentials, or verification results to third-party data brokers.",
+    badge: "Guaranteed"
+  },
+  {
+    icon: Lock,
+    title: "Cryptographic Ownership",
+    desc: "Every verified certificate receives an immutable SHA-256 cryptographic digest. You maintain full ownership of your credentials.",
+    badge: "Decentralized"
+  },
+  {
+    icon: Cpu,
+    title: "Ethical & Isolated AI",
+    desc: "Our verification models analyze certificates in isolated environments. User files are never used to train public generative AI corpuses.",
+    badge: "Privacy-Preserving"
+  },
+  {
+    icon: UserCheck,
+    title: "Universal User Control",
+    desc: "Export your complete credential audit trail as JSON/PDF or permanently delete your account and records with one request.",
+    badge: "GDPR & CCPA"
+  }
+];
 
 const Privacy = () => {
+  const [activeSection, setActiveSection] = useState("section-1");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"standard" | "summary">("standard");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  // Track scroll progress and active section
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0;
+      setScrollProgress(Math.min(100, Math.max(0, progress)));
+
+      // Detect active section
+      for (const section of SECTIONS) {
+        const el = document.getElementById(section.id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 200 && rect.bottom >= 200) {
+            setActiveSection(section.id);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      const yOffset = -90;
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+      setActiveSection(id);
+    }
+  };
+
+  const copySectionLink = (id: string) => {
+    const url = `${window.location.origin}/privacy#${id}`;
+    navigator.clipboard.writeText(url);
+    setCopiedId(id);
+    toast.success("Section link copied to clipboard!");
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const filteredSections = SECTIONS.filter(s => 
+    !searchQuery.trim() ||
+    s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.summary.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Layout>
-      {/* Header Banner */}
-      <section className="pt-24 pb-16 bg-gradient-to-b from-secondary/40 via-secondary/20 to-background border-b border-border/40">
-        <div className="container mx-auto px-4">
+      {/* Scroll Progress Bar */}
+      <div 
+        className="fixed top-16 left-0 right-0 h-1 bg-primary/20 z-40 transition-all duration-150"
+      >
+        <div 
+          className="h-full bg-primary transition-all duration-150"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
+      {/* Hero Header */}
+      <section className="pt-20 pb-12 bg-gradient-to-b from-primary/5 via-secondary/20 to-background border-b border-border/60">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs md:text-sm font-semibold mb-6 border border-primary/20">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs md:text-sm font-semibold mb-4 border border-primary/20 shadow-xs">
               <Shield className="w-4 h-4" />
-              Legal & Data Governance
+              <span>Official Legal Policy & Data Protection</span>
+              <span className="hidden sm:inline text-muted-foreground">•</span>
+              <span className="hidden sm:inline text-foreground font-mono">v2.4 (2026)</span>
             </div>
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground tracking-tight mb-4">
-              Privacy Policy
+
+            <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-extrabold text-foreground tracking-tight mb-4">
+              Privacy Policy & Security
             </h1>
-            <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto">
-              EduProof is an AI-Powered Achievement Trust Platform designed to verify academic, professional, and competitive credentials with explainable trust scores.
+            
+            <p className="text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+              EduProof is dedicated to the highest standards of data privacy, algorithmic transparency, and cryptographic ownership for students, professionals, and recruiters.
             </p>
-            <div className="flex items-center justify-center gap-3 mt-6 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5 font-medium">
+
+            {/* Meta & Quick Action Toolbar */}
+            <div className="flex flex-wrap items-center justify-center gap-3 mt-6 pt-2">
+              <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-secondary/60 px-3 py-1.5 rounded-full border border-border/60">
                 <Clock className="w-3.5 h-3.5 text-primary" />
-                Last Updated: February 2026
-              </span>
-              <span>•</span>
-              <span>Created & Owned by Tanmay Anand</span>
+                <span>Last Updated: February 2026</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-secondary/60 px-3 py-1.5 rounded-full border border-border/60">
+                <Building className="w-3.5 h-3.5 text-primary" />
+                <span>Created & Owned by Tanmay Anand</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 text-xs gap-1.5 rounded-full"
+                onClick={handlePrint}
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print / Save PDF</span>
+              </Button>
+            </div>
+
+            {/* Quick Search & Summary Toggle */}
+            <div className="max-w-xl mx-auto mt-8 flex flex-col sm:flex-row items-center gap-3">
+              <div className="relative w-full">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search privacy topics (e.g., AI, cookies, retention, GDPR)..."
+                  className="pl-9 pr-4 text-xs sm:text-sm h-10 rounded-xl bg-card border-border/80 shadow-xs"
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-1 bg-secondary/80 p-1 rounded-xl border border-border/60 w-full sm:w-auto justify-center">
+                <button
+                  onClick={() => setViewMode("standard")}
+                  className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${
+                    viewMode === "standard" 
+                      ? "bg-background text-foreground shadow-xs font-semibold" 
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Full Policy
+                </button>
+                <button
+                  onClick={() => setViewMode("summary")}
+                  className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${
+                    viewMode === "summary" 
+                      ? "bg-primary text-primary-foreground shadow-xs font-semibold" 
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Key Highlights
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Main Content Area */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto space-y-8">
-
-            {/* 1. Introduction */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Shield className="w-5 h-5" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">1. Introduction</h2>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">
-                EduProof (“EduProof,” “we,” “our,” or “us”), created and owned by <strong>Tanmay Anand</strong>, is committed to protecting the privacy, security, and integrity of information entrusted to our platform.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                EduProof is an AI-Powered Achievement Trust Platform designed to help verify academic, professional, and competitive achievements using multi-source evidence cross-validation and explainable confidence scores.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                This Privacy Policy explains how we collect, use, store, protect, and disclose information when you access or use the EduProof platform, website, verification services, dashboard, AI-assisted features, and related services (collectively, the “Services”).
-              </p>
-              <p className="text-foreground font-medium pt-1">
-                By using EduProof, you acknowledge that you have read and understood this Privacy Policy.
-              </p>
+      {/* At A Glance Highlights Section */}
+      <section className="py-8 bg-secondary/20 border-b border-border/50">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-6">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-primary">
+                At a Glance: Our Privacy Commitments
+              </h2>
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {EXECUTIVE_HIGHLIGHTS.map((item, idx) => {
+                const Icon = item.icon;
+                return (
+                  <div 
+                    key={idx} 
+                    className="p-5 rounded-2xl bg-card border border-border/70 shadow-xs hover:shadow-md hover:border-primary/40 transition-all flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                          {item.badge}
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-foreground text-sm mb-1.5">{item.title}</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
 
-            {/* 2. Information We Collect */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Database className="w-5 h-5" />
+      {/* Main Body with Sticky Sidebar Layout */}
+      <section className="py-12">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Sticky Navigation Sidebar (Desktop) */}
+            <aside className="hidden lg:block lg:col-span-4 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto pr-3 space-y-4">
+              <div className="p-4 rounded-2xl bg-card border border-border/70 shadow-xs">
+                <div className="flex items-center justify-between mb-3 pb-2 border-b border-border/60">
+                  <span className="font-display font-bold text-sm text-foreground flex items-center gap-2">
+                    <FileCheck className="w-4 h-4 text-primary" />
+                    Table of Contents
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {SECTIONS.length} Sections
+                  </span>
                 </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">2. Information We Collect</h2>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">
-                Depending on how you use EduProof, we may collect the following categories of information:
-              </p>
 
-              {/* 2.1 Account Information */}
-              <div className="p-5 rounded-xl bg-secondary/30 border border-border/50 space-y-3">
-                <h3 className="font-bold text-foreground text-lg">2.1 Account Information</h3>
-                <p className="text-sm text-muted-foreground">When you create an account, we may collect:</p>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground list-disc pl-5">
-                  <li>Name</li>
-                  <li>Email address</li>
-                  <li>Password or authentication credentials</li>
-                  <li>User role or account type</li>
-                  <li>Profile information</li>
-                  <li>Account preferences</li>
-                  <li>Authentication and login information</li>
-                </ul>
-                <p className="text-xs text-muted-foreground italic pt-2">
-                  Passwords are not intended to be stored in plain text and should be protected using appropriate authentication and encryption mechanisms.
+                <nav className="space-y-1">
+                  {filteredSections.map((section) => {
+                    const Icon = section.icon;
+                    const isActive = activeSection === section.id;
+                    return (
+                      <button
+                        key={section.id}
+                        onClick={() => scrollToSection(section.id)}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-all group ${
+                          isActive
+                            ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary pl-2.5 shadow-xs"
+                            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
+                          <span className="truncate">{section.shortTitle}</span>
+                        </div>
+                        <ChevronRight className={`w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity ${isActive ? "opacity-100 text-primary" : ""}`} />
+                      </button>
+                    );
+                  })}
+                </nav>
+
+                {/* Quick DSR Box */}
+                <div className="mt-4 pt-3 border-t border-border/60">
+                  <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-1.5 text-xs">
+                    <p className="font-semibold text-foreground flex items-center gap-1.5">
+                      <KeyRound className="w-3.5 h-3.5 text-primary" />
+                      Exercising Rights?
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Request data export or erasure by contacting our privacy compliance desk.
+                    </p>
+                    <a
+                      href="mailto:privacy@eduproof.com?subject=Data%20Subject%20Request%20-%20EduProof"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline pt-1"
+                    >
+                      <Mail className="w-3 h-3" />
+                      Email privacy@eduproof.com
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </aside>
+
+            {/* Policy Content Area */}
+            <main className="lg:col-span-8 space-y-8">
+              
+              {/* If Summary Mode is Enabled */}
+              {viewMode === "summary" && (
+                <div className="p-5 rounded-2xl bg-primary/10 border border-primary/20 text-sm text-foreground space-y-2 mb-6">
+                  <div className="flex items-center gap-2 font-bold text-primary text-base">
+                    <Eye className="w-5 h-5" />
+                    Plain English Policy Digest
+                  </div>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
+                    Here is an easy-to-understand breakdown of what our privacy policy means for you as a student, professional, or recruiter. You can switch back to the Full Policy view at any time.
+                  </p>
+                </div>
+              )}
+
+              {/* 1. Introduction */}
+              <div id="section-1" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                      <Shield className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">1. Introduction & Governance</h2>
+                  </div>
+                  <button 
+                    onClick={() => copySectionLink("section-1")}
+                    className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-secondary transition-colors"
+                    title="Copy section link"
+                  >
+                    {copiedId === "section-1" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                  EduProof (“EduProof,” “we,” “our,” or “us”), created and owned by <strong>Tanmay Anand</strong>, is committed to safeguarding the privacy, cryptographic integrity, and confidentiality of all credentials entrusted to our decentralized trust platform.
+                </p>
+                <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                  EduProof is an AI-Powered Achievement Trust Platform engineered to verify academic certificates, competitive hackathons, licenses, and professional credentials through multi-source evidence cross-validation and explainable trust scores.
+                </p>
+                <div className="p-4 rounded-xl bg-secondary/40 border border-border/60 text-xs sm:text-sm text-muted-foreground">
+                  <strong className="text-foreground">Scope:</strong> This Privacy Policy governs all interactions with the EduProof web application, verification APIs, candidate portfolios, recruiter dashboards, and AI-assisted forensic tooling (collectively, the “Services”).
+                </div>
+              </div>
+
+              {/* 2. Information We Collect */}
+              <div id="section-2" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-6">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                      <Database className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">2. Information We Collect</h2>
+                  </div>
+                  <button 
+                    onClick={() => copySectionLink("section-2")}
+                    className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-secondary transition-colors"
+                    title="Copy section link"
+                  >
+                    {copiedId === "section-2" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
+                  We collect only the minimum required information necessary to provide tamper-proof credential verification:
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-secondary/30 border border-border/50 space-y-2">
+                    <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                      <UserCheck className="w-4 h-4 text-primary" />
+                      2.1 Account Profile Data
+                    </h3>
+                    <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
+                      <li>Full Name and Contact Email</li>
+                      <li>Role type (Candidate, Recruiter, Admin)</li>
+                      <li>Encrypted authentication credentials</li>
+                      <li>Profile avatar and preferences</li>
+                      <li>Associated institution or organization</li>
+                    </ul>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-secondary/30 border border-border/50 space-y-2">
+                    <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                      <FileCheck className="w-4 h-4 text-primary" />
+                      2.2 Certificate & Evidence Files
+                    </h3>
+                    <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
+                      <li>Uploaded certificate PDFs and images</li>
+                      <li>Issuing organization & date of award</li>
+                      <li>Unique credential ID numbers</li>
+                      <li>Public verification reference URLs</li>
+                      <li>Supporting portfolio links & repositories</li>
+                    </ul>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-secondary/30 border border-border/50 space-y-2">
+                    <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                      <Cpu className="w-4 h-4 text-primary" />
+                      2.3 Verification Telemetry
+                    </h3>
+                    <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
+                      <li>Cryptographic SHA-256 evidence hashes</li>
+                      <li>Multi-signal confidence score breakdowns</li>
+                      <li>OCR text extraction logs</li>
+                      <li>Explanations of trust corroborations</li>
+                      <li>Timestamped audit log trail</li>
+                    </ul>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-secondary/30 border border-border/50 space-y-2">
+                    <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                      <Globe className="w-4 h-4 text-primary" />
+                      2.4 Technical & Device Logs
+                    </h3>
+                    <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
+                      <li>IP address and approximate location</li>
+                      <li>Browser version and device environment</li>
+                      <li>Platform interactions and error logs</li>
+                      <li>Page load performance diagnostics</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. How We Use Information */}
+              <div id="section-3" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">3. How We Use Your Information</h2>
+                  </div>
+                  <button onClick={() => copySectionLink("section-3")} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground">
+                    {copiedId === "section-3" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+                  <p>We process collected data under lawful bases (Contract Performance, Legitimate Interest, and Consent) for:</p>
+                  <ul className="list-disc pl-5 space-y-1.5">
+                    <li><strong className="text-foreground">Cross-Validation:</strong> Validating digital certificates against public records and authentic issuing authority databases.</li>
+                    <li><strong className="text-foreground">Trust Scoring:</strong> Computing multi-dimensional trust ratings (cryptographic anchor, OCR coherence, public presence).</li>
+                    <li><strong className="text-foreground">Fraud Detection:</strong> Identifying manipulated dates, fabricated seal graphics, or contradictory metadata across documents.</li>
+                    <li><strong className="text-foreground">Verified CV Generation:</strong> Rendering verified PDF resumes with embedded cryptographic QR links for candidate applications.</li>
+                    <li><strong className="text-foreground">System Reliability:</strong> Monitoring API response times, preventing DDoS abuse, and safeguarding account access.</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* 4. AI & Automated Processing */}
+              <div id="section-4" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                      <Cpu className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">4. AI & Automated Processing</h2>
+                  </div>
+                  <button onClick={() => copySectionLink("section-4")} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground">
+                    {copiedId === "section-4" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-muted-foreground leading-relaxed text-sm">
+                  EduProof integrates state-of-the-art vision and multimodal models (including Google Gemini) to accelerate certificate analysis:
+                </p>
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-2 text-xs md:text-sm text-muted-foreground">
+                  <p>• <strong>Strict Privacy Boundaries:</strong> User document uploads and private certificates are processed through secure API endpoints with ephemeral memory. They are <strong>never</strong> ingested to train publicly available AI foundation models.</p>
+                  <p>• <strong>Human-in-the-Loop:</strong> AI assessments serve as decision-support signals. Recruiters, candidates, and issuing administrators can inspect the exact evidence backing any score.</p>
+                  <p>• <strong>Continuous Chatbot Learning:</strong> When you interact with our on-site AI assistant, preferences and corrections are stored locally in your browser to personalize future assistance.</p>
+                </div>
+              </div>
+
+              {/* 5. Public Sources */}
+              <div id="section-5" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                      <Globe className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">5. Information From Public Sources</h2>
+                  </div>
+                  <button onClick={() => copySectionLink("section-5")} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground">
+                    {copiedId === "section-5" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-muted-foreground leading-relaxed text-sm">
+                  To strengthen confidence in submitted credentials, EduProof cross-references public registries, official tournament archives, competition leaderboards, and verified open-source contributions. We do not claim intellectual property over public third-party archives.
                 </p>
               </div>
 
-              {/* 2.2 Certificate and Achievement Data */}
-              <div className="p-5 rounded-xl bg-secondary/30 border border-border/50 space-y-3">
-                <h3 className="font-bold text-foreground text-lg">2.2 Certificate and Achievement Data</h3>
-                <p className="text-sm text-muted-foreground">When you submit an achievement or credential for verification, we may collect:</p>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground list-disc pl-5">
-                  <li>Certificate or credential files</li>
-                  <li>Certificate title</li>
-                  <li>Recipient name</li>
-                  <li>Issuing organization</li>
-                  <li>Date of issuance</li>
-                  <li>Achievement category</li>
-                  <li>Certificate identification numbers</li>
-                  <li>URLs or references associated with the achievement</li>
-                  <li>Verification metadata</li>
-                  <li>Supporting documents</li>
-                  <li>Other information contained within submitted documents</li>
-                </ul>
-                <p className="text-xs text-muted-foreground pt-1">
-                  Users should avoid submitting unnecessary sensitive personal information that is not required for verification.
+              {/* 6. Data Sharing */}
+              <div id="section-6" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                      <Share2 className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">6. Data Sharing & Processors</h2>
+                  </div>
+                  <button onClick={() => copySectionLink("section-6")} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground">
+                    {copiedId === "section-6" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 text-sm font-semibold text-primary">
+                  We have never sold, and will never sell, your personal data.
+                </div>
+                <p className="text-sm text-muted-foreground">Information is shared strictly under the following scopes:</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-muted-foreground">
+                  <div className="p-3.5 rounded-xl bg-secondary/30 border border-border/50">
+                    <strong className="text-foreground block mb-1">Approved Recruiters</strong>
+                    Only organizations to which you explicitly send your verified portfolio or applications.
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-secondary/30 border border-border/50">
+                    <strong className="text-foreground block mb-1">Infrastructure Providers</strong>
+                    Enterprise cloud providers (Firebase, Supabase, Google Cloud) under confidentiality agreements.
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-secondary/30 border border-border/50">
+                    <strong className="text-foreground block mb-1">Legal Mandates</strong>
+                    When strictly compelled by subpoena, court order, or applicable statutory laws.
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-secondary/30 border border-border/50">
+                    <strong className="text-foreground block mb-1">Business Continuity</strong>
+                    In the event of a merger, subject to the buyer adhering to identical privacy standards.
+                  </div>
+                </div>
+              </div>
+
+              {/* 7. Security */}
+              <div id="section-7" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                      <Lock className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">7. Cryptographic Data Security</h2>
+                  </div>
+                  <button onClick={() => copySectionLink("section-7")} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground">
+                    {copiedId === "section-7" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  EduProof employs enterprise-grade safeguards designed to exceed industry norms:
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs text-muted-foreground">
+                  <div className="p-3 rounded-lg bg-secondary/40 border border-border/60">
+                    <strong className="text-foreground block">TLS 1.3</strong> In-Transit Protection
+                  </div>
+                  <div className="p-3 rounded-lg bg-secondary/40 border border-border/60">
+                    <strong className="text-foreground block">AES-256</strong> At-Rest Encryption
+                  </div>
+                  <div className="p-3 rounded-lg bg-secondary/40 border border-border/60">
+                    <strong className="text-foreground block">SHA-256</strong> Immutable Proofs
+                  </div>
+                  <div className="p-3 rounded-lg bg-secondary/40 border border-border/60">
+                    <strong className="text-foreground block">RBAC</strong> Role Controls
+                  </div>
+                  <div className="p-3 rounded-lg bg-secondary/40 border border-border/60">
+                    <strong className="text-foreground block">SOC-2</strong> Readiness Alignment
+                  </div>
+                  <div className="p-3 rounded-lg bg-secondary/40 border border-border/60">
+                    <strong className="text-foreground block">Audit</strong> Forensic Logs
+                  </div>
+                </div>
+              </div>
+
+              {/* 8. Retention */}
+              <div id="section-8" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">8. Data Retention & Deletion</h2>
+                  </div>
+                  <button onClick={() => copySectionLink("section-8")} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground">
+                    {copiedId === "section-8" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  We retain user records only as long as you maintain an active account on EduProof. When you choose to delete your account, your certificate files, personal metadata, and verification history are purged from primary storage within 30 days, unless statutory preservation is legally mandated.
                 </p>
               </div>
 
-              {/* 2.3 Verification Information */}
-              <div className="p-5 rounded-xl bg-secondary/30 border border-border/50 space-y-3">
-                <h3 className="font-bold text-foreground text-lg">2.3 Verification Information</h3>
-                <p className="text-sm text-muted-foreground">During the verification process, EduProof may generate and store:</p>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground list-disc pl-5">
-                  <li>Verification results</li>
-                  <li>Evidence sources</li>
-                  <li>Evidence-matching results</li>
-                  <li>Confidence scores</li>
-                  <li>Verification status</li>
-                  <li>Individual verification checks</li>
-                  <li>Explanations associated with verification results</li>
-                  <li>Timestamp and processing information</li>
-                  <li>AI-generated observations or recommendations</li>
-                </ul>
-                <div className="p-3.5 rounded-lg bg-primary/5 border border-primary/20 text-xs text-muted-foreground mt-2">
-                  <strong className="text-foreground">Note:</strong> A confidence score is an informational assessment generated from available evidence and does not constitute an official certification, legal determination, employment decision, or guarantee of authenticity.
+              {/* 9. Your Rights */}
+              <div id="section-9" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                      <UserCheck className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">9. Your Privacy Rights (GDPR & CCPA)</h2>
+                  </div>
+                  <button onClick={() => copySectionLink("section-9")} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground">
+                    {copiedId === "section-9" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Regardless of jurisdiction, EduProof affords all users comprehensive privacy prerogatives:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3.5 rounded-xl bg-secondary/30 border border-border/50 space-y-1">
+                    <strong className="text-foreground flex items-center gap-1.5">
+                      <DownloadCloud className="w-3.5 h-3.5 text-primary" />
+                      Right to Data Portability
+                    </strong>
+                    <p className="text-muted-foreground">Request a machine-readable JSON/CSV export of your complete credential verification logs.</p>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-secondary/30 border border-border/50 space-y-1">
+                    <strong className="text-foreground flex items-center gap-1.5">
+                      <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                      Right to Erasure ("Be Forgotten")
+                    </strong>
+                    <p className="text-muted-foreground">Permanently delete your profile and certificates from EduProof database servers.</p>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-secondary/30 border border-border/50 space-y-1">
+                    <strong className="text-foreground flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-primary" />
+                      Right of Rectification
+                    </strong>
+                    <p className="text-muted-foreground">Correct inaccurate or outdated achievement records and institution linkages.</p>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-secondary/30 border border-border/50 space-y-1">
+                    <strong className="text-foreground flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-primary" />
+                      Right to Restriction
+                    </strong>
+                    <p className="text-muted-foreground">Revoke recruiter access to individual credentials with a single toggle.</p>
+                  </div>
                 </div>
               </div>
 
-              {/* 2.4 Usage and Technical Data */}
-              <div className="p-5 rounded-xl bg-secondary/30 border border-border/50 space-y-3">
-                <h3 className="font-bold text-foreground text-lg">2.4 Usage and Technical Data</h3>
-                <p className="text-sm text-muted-foreground">We may automatically collect certain technical information when you interact with EduProof, including:</p>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground list-disc pl-5">
-                  <li>IP address</li>
-                  <li>Browser type</li>
-                  <li>Operating system</li>
-                  <li>Device type</li>
-                  <li>Approximate location derived from technical information</li>
-                  <li>Pages visited</li>
-                  <li>Features used</li>
-                  <li>Session information</li>
-                  <li>Referring pages</li>
-                  <li>Error logs</li>
-                  <li>Date and time of interactions</li>
-                </ul>
-                <p className="text-xs text-muted-foreground pt-1">
-                  This information helps us maintain security, troubleshoot technical problems, and improve the platform.
+              {/* 10. Cookies */}
+              <div id="section-10" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                      <KeyRound className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">10. Cookies & Local Storage</h2>
+                  </div>
+                  <button onClick={() => copySectionLink("section-10")} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground">
+                    {copiedId === "section-10" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  We use cookies and localStorage strictly for functional necessities: maintaining your secure authenticated session, remembering theme preferences, and caching self-learning chatbot memories. We do not use third-party behavioral advertising tracking cookies.
                 </p>
               </div>
-            </div>
 
-            {/* 3. How We Use Your Information */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">3. How We Use Your Information</h2>
+              {/* 11. Third Parties */}
+              <div id="section-11" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-3">
+                <h2 className="font-display text-xl font-bold text-foreground">11. Third-Party Services & Links</h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  EduProof may present links to verified external institutions, competitive hackathons, or credential registries. Each third party operates independently under their own privacy standards. We advise reviewing their policies before sharing external data.
+                </p>
               </div>
-              <p className="text-muted-foreground leading-relaxed">
-                We may use collected information for the following purposes:
-              </p>
 
-              <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-secondary/30 border border-border/40 space-y-2">
-                  <h4 className="font-bold text-foreground text-base">3.1 Credential Verification</h4>
-                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                    <li>Process submitted certificates and achievements</li>
-                    <li>Compare information against available evidence sources</li>
-                    <li>Cross-validate achievement claims</li>
-                    <li>Generate verification results</li>
-                    <li>Produce explainable confidence scores</li>
-                    <li>Identify inconsistencies or missing evidence</li>
-                  </ul>
+              {/* 12. International Transfers */}
+              <div id="section-12" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-3">
+                <h2 className="font-display text-xl font-bold text-foreground">12. International Data Transfers</h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Our cloud servers and verification nodes may operate across multiple international regions. Cross-border data flows are safeguarded through standard contractual clauses and rigorous transport encryption.
+                </p>
+              </div>
+
+              {/* 13. Children's Privacy */}
+              <div id="section-13" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-3">
+                <h2 className="font-display text-xl font-bold text-foreground">13. Children's & Educational Privacy</h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  EduProof aligns with FERPA standards for educational records and does not knowingly collect personal data from minors under 13 without verified parental or institutional educator consent. Inquiries regarding student accounts can be directed to our compliance team.
+                </p>
+              </div>
+
+              {/* 14. Changes */}
+              <div id="section-14" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-3">
+                <h2 className="font-display text-xl font-bold text-foreground">14. Policy Updates & Revision History</h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  As our platform introduces new cryptographic checks or compliance mechanisms, we update this policy with explicit date stamps. Continued use of EduProof after published modifications signifies acceptance of the revised policy.
+                </p>
+              </div>
+
+              {/* 15. Contact DPO */}
+              <div id="section-15" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">15. Contact Data Protection Officer (DPO)</h2>
+                  </div>
+                  <button onClick={() => copySectionLink("section-15")} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground">
+                    {copiedId === "section-15" ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
                 </div>
-
-                <div className="p-4 rounded-xl bg-secondary/30 border border-border/40 space-y-2">
-                  <h4 className="font-bold text-foreground text-base">3.2 Providing and Improving EduProof</h4>
-                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                    <li>Operate the platform</li>
-                    <li>Maintain user accounts</li>
-                    <li>Improve features</li>
-                    <li>Develop new verification capabilities</li>
-                    <li>Monitor platform performance</li>
-                    <li>Diagnose errors</li>
-                    <li>Improve the user experience</li>
-                  </ul>
-                </div>
-
-                <div className="p-4 rounded-xl bg-secondary/30 border border-border/40 space-y-2">
-                  <h4 className="font-bold text-foreground text-base">3.3 Security and Fraud Prevention</h4>
-                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                    <li>Detect suspicious activity</li>
-                    <li>Prevent fraudulent submissions</li>
-                    <li>Identify attempts to manipulate verification results</li>
-                    <li>Protect user accounts</li>
-                    <li>Prevent unauthorized access</li>
-                    <li>Investigate security incidents</li>
-                    <li>Enforce our Terms of Use</li>
-                  </ul>
-                </div>
-
-                <div className="p-4 rounded-xl bg-secondary/30 border border-border/40 space-y-2">
-                  <h4 className="font-bold text-foreground text-base">3.4 Communications</h4>
-                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                    <li>Respond to support requests</li>
-                    <li>Send account-related notifications</li>
-                    <li>Provide verification updates</li>
-                    <li>Communicate important service changes</li>
-                    <li>Send security notifications</li>
-                  </ul>
-                  <p className="text-xs text-muted-foreground pt-1">
-                    Marketing communications, where applicable, will be subject to available consent and opt-out mechanisms.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-xl bg-secondary/30 border border-border/40 space-y-2">
-                  <h4 className="font-bold text-foreground text-base">3.5 Legal Compliance</h4>
-                  <p className="text-sm text-muted-foreground">We may process or disclose information when reasonably necessary to:</p>
-                  <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                    <li>Comply with applicable laws</li>
-                    <li>Respond to lawful government requests</li>
-                    <li>Protect our legal rights</li>
-                    <li>Investigate suspected unlawful activity</li>
-                    <li>Enforce contractual terms</li>
-                    <li>Protect users and the security of the platform</li>
-                  </ul>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  For any privacy questions, data export inquiries, or regulatory compliance requests, our Data Protection Officer is directly reachable:
+                </p>
+                <div className="p-5 rounded-2xl bg-secondary/40 border border-border/70 space-y-3 text-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <p className="font-bold text-foreground text-base">Tanmay Anand</p>
+                      <p className="text-xs text-muted-foreground">Founder & Data Controller • EduProof Platform</p>
+                    </div>
+                    <Button asChild size="sm" className="gap-2">
+                      <a href="mailto:privacy@eduproof.com?subject=Privacy%20Inquiry%20-%20EduProof">
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>Email Privacy Desk</span>
+                      </a>
+                    </Button>
+                  </div>
+                  <div className="pt-2 border-t border-border/60 flex flex-wrap gap-4 text-xs text-muted-foreground">
+                    <span>Direct: <strong className="text-foreground">privacy@eduproof.com</strong></span>
+                    <span>•</span>
+                    <span>Response Time: <strong className="text-foreground">Within 48 hours</strong></span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* 4. AI and Automated Processing */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Cpu className="w-5 h-5" />
+              {/* 16. Disclaimers */}
+              <div id="section-16" className="scroll-mt-24 bg-amber-500/10 rounded-2xl p-6 sm:p-8 shadow-xs border border-amber-500/30 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <h2 className="font-display text-xl sm:text-2xl font-bold text-amber-700 dark:text-amber-400">16. Important Disclaimers</h2>
                 </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">4. AI and Automated Processing</h2>
+                <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed font-medium">
+                  EduProof is an algorithmic and evidence-matching assistance system. Confidence scores reflect mathematical and semantic verification signals, and do not constitute legal government degrees or direct institutional warranties. Users are encouraged to cross-confirm sensitive credentials with the primary issuing entity.
+                </p>
               </div>
-              <p className="text-muted-foreground leading-relaxed">
-                EduProof uses artificial intelligence and automated technologies as part of its verification workflow.
-              </p>
-              <p className="text-sm text-foreground font-semibold">AI-assisted features may be used for purposes such as:</p>
-              <ul className="list-disc pl-6 text-sm text-muted-foreground space-y-1.5">
-                <li>Extracting information from documents</li>
-                <li>Identifying potentially relevant evidence</li>
-                <li>Comparing information across sources</li>
-                <li>Summarizing evidence</li>
-                <li>Detecting inconsistencies</li>
-                <li>Assisting with verification explanations</li>
-                <li>Supporting confidence-score generation</li>
-              </ul>
-              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs md:text-sm text-muted-foreground space-y-2 mt-4">
-                <p>• AI-generated outputs may contain errors, omissions, or incorrect interpretations.</p>
-                <p>• EduProof does not guarantee that an AI-generated result is accurate or conclusive.</p>
-                <p>• Where appropriate, users should independently verify important information with the original issuing organization or authoritative source.</p>
-                <p>• EduProof’s confidence score should be interpreted as an evidence-based platform assessment rather than an official determination.</p>
+
+              {/* 17. Consent */}
+              <div id="section-17" className="scroll-mt-24 bg-card rounded-2xl p-6 sm:p-8 shadow-xs border border-border/70 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">17. Consent & Authorization</h2>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  By utilizing the EduProof website, candidate verification portals, and recruiter verification tools, you acknowledge and consent to the data governance practices established in this Privacy Policy.
+                </p>
               </div>
-            </div>
 
-            {/* 5. Information Obtained From Public Sources */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Globe className="w-5 h-5" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">5. Information Obtained From Public Sources</h2>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">
-                To verify achievements, EduProof may use information available from publicly accessible sources, including:
-              </p>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground list-disc pl-5">
-                <li>Official organization websites</li>
-                <li>Public winner lists</li>
-                <li>Public competition results</li>
-                <li>Public registries</li>
-                <li>Public GitHub repositories</li>
-                <li>Public professional profiles</li>
-                <li>Publicly accessible institutional pages</li>
-                <li>Other publicly available evidence sources</li>
-              </ul>
-              <p className="text-xs text-muted-foreground pt-2">
-                The use of publicly available information is intended solely to support credential verification and evidence cross-validation. EduProof does not claim ownership of third-party information simply because it is referenced by the platform.
-              </p>
-            </div>
-
-            {/* 6. Data Sharing and Disclosure */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Share2 className="w-5 h-5" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">6. Data Sharing and Disclosure</h2>
-              </div>
-              <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 text-sm font-semibold text-primary">
-                EduProof does not sell personal data.
-              </div>
-              <p className="text-sm text-muted-foreground">
-                We may share or disclose information in limited circumstances:
-              </p>
-
-              <div className="space-y-3.5">
-                <div className="p-4 rounded-xl bg-secondary/30 border border-border/40">
-                  <h4 className="font-bold text-foreground text-sm mb-1.5">6.1 Service Providers</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    We may use trusted third-party service providers to support functions such as cloud hosting, database management, authentication, file storage, AI processing, analytics, security monitoring, email delivery, and application infrastructure. These providers may process information only as necessary to provide their services, subject to applicable agreements and security requirements.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-xl bg-secondary/30 border border-border/40">
-                  <h4 className="font-bold text-foreground text-sm mb-1.5">6.2 Recruiters and Organizations</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    If EduProof provides a feature allowing users to share verification results with recruiters, institutions, employers, or other organizations, such sharing will occur based on the user’s actions or explicit consent, where required. Users should review the information they are sharing before making it accessible to third parties.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-xl bg-secondary/30 border border-border/40">
-                  <h4 className="font-bold text-foreground text-sm mb-1.5">6.3 Legal Requirements</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    We may disclose information when required or permitted by applicable law, including in response to court orders, legal processes, government requests, regulatory requirements, or law-enforcement requests.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-xl bg-secondary/30 border border-border/40">
-                  <h4 className="font-bold text-foreground text-sm mb-1.5">6.4 Business Transfers</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    If EduProof undergoes a merger, acquisition, restructuring, financing, sale of assets, or similar transaction, user information may be transferred as part of that transaction, subject to applicable legal requirements.
-                  </p>
+              {/* Bottom Copyright and Verification Link */}
+              <div className="pt-8 text-center border-t border-border/60 text-xs text-muted-foreground space-y-2">
+                <p>© {new Date().getFullYear()} Tanmay Anand. All rights reserved.</p>
+                <p className="font-semibold text-foreground">EduProof — AI-Powered Achievement Trust Platform</p>
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <a href="/terms" className="text-primary hover:underline">Terms of Use</a>
+                  <span>•</span>
+                  <a href="/support" className="text-primary hover:underline">Support & Help</a>
+                  <span>•</span>
+                  <a href="/how-it-works" className="text-primary hover:underline">How It Works</a>
                 </div>
               </div>
-            </div>
 
-            {/* 7. Data Security */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Lock className="w-5 h-5" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">7. Data Security</h2>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">
-                We take reasonable technical and organizational measures to protect information from unauthorized access, alteration, disclosure, or destruction.
-              </p>
-              <p className="text-sm text-foreground font-semibold">Security measures may include:</p>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground list-disc pl-5">
-                <li>Encryption during data transmission</li>
-                <li>Encrypted or access-controlled storage</li>
-                <li>Authentication mechanisms</li>
-                <li>Role-based access controls</li>
-                <li>Secure application architecture</li>
-                <li>Monitoring for suspicious activity</li>
-                <li>Security updates</li>
-                <li>Vulnerability assessments</li>
-                <li>Access restrictions</li>
-              </ul>
-              <p className="text-xs text-muted-foreground pt-2">
-                However, no internet-based service can guarantee absolute security. Users are responsible for maintaining the confidentiality of their account credentials and should immediately notify EduProof if they suspect unauthorized access to their account.
-              </p>
-            </div>
-
-            {/* 8. Data Retention */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Clock className="w-5 h-5" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">8. Data Retention</h2>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">
-                We retain information only for as long as reasonably necessary for the purposes described in this Privacy Policy, including:
-              </p>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground list-disc pl-5">
-                <li>Providing the Services</li>
-                <li>Maintaining verification history</li>
-                <li>Meeting legal obligations</li>
-                <li>Resolving disputes</li>
-                <li>Preventing fraud</li>
-                <li>Maintaining security records</li>
-                <li>Enforcing agreements</li>
-              </ul>
-              <p className="text-xs text-muted-foreground pt-2">
-                The retention period may vary depending on the type of information and the purpose for which it was collected. When information is no longer required, it may be deleted, anonymized, or securely disposed of, subject to applicable legal and operational requirements.
-              </p>
-            </div>
-
-            {/* 9. Your Privacy Rights */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <UserCheck className="w-5 h-5" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">9. Your Privacy Rights</h2>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">
-                Depending on applicable law, you may have rights regarding your personal information, including the right to:
-              </p>
-              <ul className="list-disc pl-6 text-sm text-muted-foreground space-y-1.5">
-                <li>Request access to your personal information</li>
-                <li>Request correction of inaccurate information</li>
-                <li>Request deletion of certain information</li>
-                <li>Request a copy or export of your information</li>
-                <li>Withdraw consent where processing is based on consent</li>
-                <li>Object to certain processing activities</li>
-                <li>Opt out of marketing communications</li>
-              </ul>
-              <p className="text-xs text-muted-foreground pt-2">
-                Some requests may be subject to legal or operational limitations. To exercise a privacy-related right, contact us using the details provided in Section 15.
-              </p>
-            </div>
-
-            {/* 10. Cookies and Similar Technologies */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Lock className="w-5 h-5" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">10. Cookies and Similar Technologies</h2>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">
-                EduProof may use cookies, local storage, session technologies, or similar mechanisms to:
-              </p>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground list-disc pl-5">
-                <li>Maintain login sessions</li>
-                <li>Remember user preferences</li>
-                <li>Improve website functionality</li>
-                <li>Understand platform usage</li>
-                <li>Maintain security</li>
-                <li>Diagnose technical issues</li>
-              </ul>
-              <p className="text-xs text-muted-foreground pt-2 leading-relaxed">
-                Where required by applicable law, EduProof will provide appropriate consent mechanisms for non-essential cookies or similar technologies. Users may also be able to control cookies through their browser settings. Disabling certain cookies may affect platform functionality.
-              </p>
-            </div>
-
-            {/* 11. Third-Party Services and Links */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Globe className="w-5 h-5" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">11. Third-Party Services and Links</h2>
-              </div>
-              <p className="text-muted-foreground leading-relaxed">
-                EduProof may integrate with or link to third-party services, websites, APIs, or platforms. Examples may include services used for authentication, cloud infrastructure, AI processing, analytics, document processing, evidence verification, and external achievement sources.
-              </p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Third-party services operate under their own privacy policies and terms. EduProof is not responsible for the privacy practices of independent third-party websites or services. Users should review the privacy policies of third-party services before providing information to them.
-              </p>
-            </div>
-
-            {/* 12. International Data Processing */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-3">
-              <h2 className="font-display text-xl font-bold text-foreground">12. International Data Processing</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Depending on the infrastructure and service providers used by EduProof, information may be processed or stored in locations outside the user’s state or country. Where applicable, we will take reasonable measures to ensure that personal information is handled in accordance with applicable data-protection requirements.
-              </p>
-            </div>
-
-            {/* 13. Children’s Privacy */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-3">
-              <h2 className="font-display text-xl font-bold text-foreground">13. Children’s Privacy</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                EduProof is not intentionally designed to collect personal information from children without appropriate authorization. If you believe that a child has provided personal information to EduProof without appropriate consent or authorization, please contact us. Upon receiving a valid request, we will take reasonable steps to investigate and address the matter in accordance with applicable law.
-              </p>
-            </div>
-
-            {/* 14. Changes to This Privacy Policy */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-3">
-              <h2 className="font-display text-xl font-bold text-foreground">14. Changes to This Privacy Policy</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                We may update this Privacy Policy from time to time to reflect changes to EduProof, new features or services, changes in technology, changes in applicable laws, or changes in our data practices. When changes are made, the “Last Updated” date at the beginning of this policy will be updated. For significant changes, we may provide additional notice through the platform or by other appropriate means. We encourage users to periodically review this Privacy Policy.
-              </p>
-            </div>
-
-            {/* 15. Contact Us */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">15. Contact Us</h2>
-              </div>
-              <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
-                If you have questions, concerns, requests, or complaints regarding this Privacy Policy or EduProof’s data practices, please contact us at:
-              </p>
-              <div className="p-5 rounded-xl bg-secondary/40 border border-border/70 space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <strong className="text-foreground">Email:</strong>
-                  <a href="mailto:privacy@eduproof.com" className="text-primary hover:underline font-semibold">
-                    privacy@eduproof.com
-                  </a>
-                </div>
-                <p className="text-foreground font-semibold pt-1">EduProof</p>
-                <p className="text-xs text-muted-foreground">AI-Powered Achievement Trust Platform</p>
-                <p className="text-xs text-muted-foreground">Created and owned by <strong>Tanmay Anand</strong></p>
-              </div>
-            </div>
-
-            {/* 16. Important Disclaimer */}
-            <div className="bg-amber-500/10 rounded-2xl p-6 md:p-8 shadow-xs border border-amber-500/30 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle className="w-5 h-5" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-amber-700 dark:text-amber-400">16. Important Disclaimer</h2>
-              </div>
-              <p className="text-sm md:text-base text-foreground/90 leading-relaxed font-medium">
-                EduProof is a technology platform designed to assist with achievement and credential verification.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                A verification result, evidence match, confidence score, or AI-generated explanation:
-              </p>
-              <ul className="list-disc pl-6 text-sm text-muted-foreground space-y-2">
-                <li>Does not guarantee that a credential is legally valid.</li>
-                <li>Does not constitute an official endorsement by an issuing organization.</li>
-                <li>Does not guarantee employment, admission, funding, promotion, or any other outcome.</li>
-                <li>Does not replace verification performed directly by the original issuing authority.</li>
-                <li>May be affected by incomplete, outdated, inaccessible, or incorrect source information.</li>
-              </ul>
-              <p className="text-xs md:text-sm text-foreground/90 font-medium pt-2 leading-relaxed">
-                Where a credential is important for employment, education, legal, financial, or regulatory purposes, users and organizations should independently confirm the credential with the relevant issuing authority.
-              </p>
-            </div>
-
-            {/* 17. Consent */}
-            <div className="bg-card rounded-2xl p-6 md:p-8 shadow-xs border border-border/70 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                  <CheckCircle2 className="w-5 h-5" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-foreground">17. Consent</h2>
-              </div>
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                By using EduProof, you acknowledge that you have reviewed this Privacy Policy and understand how information may be collected, used, stored, and disclosed as described above.
-              </p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Where applicable law requires a separate or explicit consent mechanism, EduProof will obtain such consent through an appropriate interface or process.
-              </p>
-            </div>
-
-            {/* Copyright Statement */}
-            <div className="text-center pt-8 pb-4 text-xs text-muted-foreground space-y-1">
-              <p>© 2026 Tanmay Anand. All rights reserved.</p>
-              <p className="font-medium text-foreground">EduProof — AI-Powered Achievement Trust Platform</p>
-            </div>
-
+            </main>
           </div>
         </div>
       </section>
