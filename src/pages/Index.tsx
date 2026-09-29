@@ -91,50 +91,100 @@ const Index = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative py-24 lg:py-32 bg-gradient-to-b from-secondary/30 via-background to-background">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-8">
-              <Sparkles className="w-3.5 h-3.5" />
-              AI-Powered Achievement Trust Platform
+      <section className="relative py-20 lg:py-28 bg-gradient-to-b from-secondary/30 via-background to-background overflow-hidden">
+        {/* Subtle background ambient glow */}
+        <div className="absolute top-1/4 right-10 w-[550px] h-[550px] bg-primary/10 rounded-full blur-3xl pointer-events-none -z-0" />
+        <div className="absolute top-1/3 left-10 w-[400px] h-[400px] bg-primary/5 rounded-full blur-3xl pointer-events-none -z-0" />
+
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            {/* Left Column: Text & CTA */}
+            <div className="lg:col-span-7">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-6 border border-primary/20 shadow-xs">
+                <Sparkles className="w-3.5 h-3.5" />
+                AI-Powered Achievement Trust Platform
+              </div>
+
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-foreground leading-[1.1] mb-6 tracking-tight">
+                Verify Genuine Achievements With{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-violet-500">
+                  Multi-Source Trust
+                </span>
+              </h1>
+
+              <p className="text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed mb-8 max-w-2xl">
+                EduProof verifies whether an achievement was genuinely earned by analyzing multiple independent evidence signals—AI forensics, OCR logic, GitHub repos, winner lists, and public registries—generating an explainable Verification Confidence Score.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button variant="hero" size="xl" asChild>
+                  <Link to={primaryCta.to}>
+                    {primaryCta.label}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+                <Button variant="outline-hero" size="xl" asChild>
+                  <Link to="/how-it-works">
+                    How Trust Engine Works
+                  </Link>
+                </Button>
+              </div>
+
+              {/* Stats */}
+              <div className="flex flex-wrap gap-8 sm:gap-12 mt-12 pt-8 border-t border-border">
+                <div>
+                  <div className="font-display text-3xl font-bold text-foreground">0–100%</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground mt-1">Confidence Scoring</div>
+                </div>
+                <div>
+                  <div className="font-display text-3xl font-bold text-foreground">6 Pillars</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground mt-1">Independent Signals</div>
+                </div>
+                <div>
+                  <div className="font-display text-3xl font-bold text-foreground">100%</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground mt-1">Institution Independent</div>
+                </div>
+              </div>
             </div>
 
-            <h1 className="font-display text-4xl md:text-5xl lg:text-[3.5rem] font-extrabold text-foreground leading-[1.1] mb-6 tracking-tight">
-              Verify Genuine Achievements With{" "}
-              <span className="text-primary">Multi-Source Trust</span>
-            </h1>
+            {/* Right Column: Hero Visual with Interactive Glass Badges */}
+            <div className="lg:col-span-5 relative flex justify-center items-center">
+              <div className="relative w-full max-w-[480px] lg:max-w-none">
+                {/* Ambient glow behind image */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-violet-500/20 rounded-3xl blur-2xl transform scale-95 -z-10" />
 
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl">
-              EduProof verifies whether an achievement was genuinely earned by analyzing multiple independent evidence signals—AI forensics, OCR logic, GitHub repos, winner lists, and public registries—generating an explainable Verification Confidence Score.
-            </p>
+                {/* Main Card Wrapper */}
+                <div className="relative rounded-3xl p-2.5 bg-card/60 backdrop-blur-md border border-primary/25 shadow-2xl shadow-primary/10 overflow-hidden group hover:border-primary/50 transition-all duration-500">
+                  <img
+                    src="/hero-trust-visual.jpg"
+                    alt="EduProof Holographic Credential Verification"
+                    className="w-full h-auto aspect-square object-cover rounded-2xl shadow-inner transition-transform duration-700 group-hover:scale-[1.02]"
+                    loading="eager"
+                  />
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button variant="hero" size="xl" asChild>
-                <Link to={primaryCta.to}>
-                  {primaryCta.label}
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-              <Button variant="outline-hero" size="xl" asChild>
-                <Link to="/how-it-works">
-                  How Trust Engine Works
-                </Link>
-              </Button>
-            </div>
+                  {/* Floating Glassmorphic Badge 1: Top Right */}
+                  <div className="absolute top-5 right-5 bg-card/90 backdrop-blur-md border border-primary/30 shadow-lg px-3.5 py-2 rounded-2xl flex items-center gap-2.5 animate-in fade-in slide-in-from-top-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <div>
+                      <p className="text-[11px] font-bold text-foreground leading-none">SHA-256 Anchored</p>
+                      <p className="text-[9px] text-muted-foreground mt-0.5">Tamper-Proof Ledger</p>
+                    </div>
+                  </div>
 
-            {/* Stats */}
-            <div className="flex flex-wrap gap-10 mt-16 pt-8 border-t border-border">
-              <div>
-                <div className="font-display text-3xl font-bold text-foreground">0–100%</div>
-                <div className="text-sm text-muted-foreground mt-1">Confidence Scoring</div>
-              </div>
-              <div>
-                <div className="font-display text-3xl font-bold text-foreground">6 Pillars</div>
-                <div className="text-sm text-muted-foreground mt-1">Independent Signals</div>
-              </div>
-              <div>
-                <div className="font-display text-3xl font-bold text-foreground">100%</div>
-                <div className="text-sm text-muted-foreground mt-1">Institution Independent</div>
+                  {/* Floating Glassmorphic Badge 2: Bottom Left */}
+                  <div className="absolute bottom-5 left-5 bg-card/90 backdrop-blur-md border border-primary/30 shadow-lg px-3.5 py-2.5 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
+                    <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                      <Shield className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-extrabold text-foreground">98% Trust Score</span>
+                        <span className="text-[10px] font-semibold text-emerald-500 bg-emerald-500/10 px-1 rounded">High</span>
+                      </div>
+                      <p className="text-[9px] text-muted-foreground">Multi-Signal Corroborated</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
