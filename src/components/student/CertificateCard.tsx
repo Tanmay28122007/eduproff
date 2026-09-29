@@ -4,7 +4,7 @@ import { ShieldCheck, ShieldAlert, FileText, Share2, Eye, Trash2, Calendar, Buil
 import { Certificate } from "@/hooks/useCertificates";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { safeFormatDate } from "@/lib/utils";
+import { safeFormatDate, sanitizeUrl } from "@/lib/utils";
 
 interface CertificateCardProps {
   certificate: Certificate;
@@ -89,7 +89,7 @@ export function CertificateCard({ certificate, onDelete }: CertificateCardProps)
         <div className="flex items-center gap-2 self-end md:self-center flex-wrap">
           {certificate.certificate_url && (
             <Button variant="outline" size="sm" asChild className="text-xs">
-              <a href={certificate.certificate_url} target="_blank" rel="noopener noreferrer">
+              <a href={sanitizeUrl(certificate.certificate_url)} target="_blank" rel="noopener noreferrer">
                 <Eye className="w-3.5 h-3.5 mr-1" />
                 View File
               </a>

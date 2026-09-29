@@ -191,6 +191,11 @@ export function useMessages() {
   const endChat = useCallback(async (partnerId: string) => {
     if (!user) return { error: "Not authenticated" };
 
+    const idRegex = /^[a-zA-Z0-9_-]+$/;
+    if (!idRegex.test(partnerId) || !idRegex.test(user.id)) {
+      return { error: "Invalid participant identifier" };
+    }
+
     try {
       localStorage.setItem(`eduproof_ended_chat_${user.id}_${partnerId}`, "true");
 

@@ -26,3 +26,15 @@ export function safeTimeAgo(input: unknown, fallback = "Recently"): string {
   const d = parseDate(input);
   return d ? formatDistanceToNow(d, { addSuffix: true }) : fallback;
 }
+
+export function sanitizeUrl(url?: string | null): string {
+  if (!url) return "#";
+  const trimmed = url.trim();
+  if (/^(https?:\/\/|mailto:|tel:|\/)/i.test(trimmed)) {
+    return trimmed;
+  }
+  if (/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+  return "#";
+}

@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { EvidenceItem } from "@/services/trustEngine";
 import { Plus, Github, Linkedin, Globe, Mail, Image as ImageIcon, Trash2, Link as LinkIcon, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { sanitizeUrl } from "@/lib/utils";
 
 interface EvidenceUploaderProps {
   evidenceItems: EvidenceItem[];
@@ -130,7 +131,7 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({
                   {getTypeIcon(item.type)}
                   <span className="font-medium text-foreground truncate">{item.title}</span>
                   {item.url && (
-                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate max-w-[150px]">
+                    <a href={sanitizeUrl(item.url)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate max-w-[150px]">
                       {item.url}
                     </a>
                   )}

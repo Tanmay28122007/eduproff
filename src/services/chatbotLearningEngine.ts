@@ -94,9 +94,11 @@ export function getLearnedMemories(): LearnedMemoryItem[] {
  */
 export function saveLearnedMemories(memories: LearnedMemoryItem[]): void {
   try {
-    localStorage.setItem(STORAGE_KEY_MEMORIES, JSON.stringify(memories));
-    // Dispatch custom event so UI components update instantly
-    window.dispatchEvent(new CustomEvent("eduproof-bot-memory-updated", { detail: { count: memories.length } }));
+    const bounded = memories.length > 200
+      ? [...memories].sort((a, b) => b.reinforcementCount - a.reinforcementCount).slice(0, 200)
+      : memories;
+    localStorage.setItem(STORAGE_KEY_MEMORIES, JSON.stringify(bounded));
+    window.dispatchEvent(new CustomEvent("eduproof-bot-memory-updated", { detail: { count: bounded.length } }));
   } catch (_err) {
     // Storage quota or storage disabled
   }
