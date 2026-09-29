@@ -20,13 +20,23 @@ import {
   Search,
   RefreshCw,
   MessageSquare,
-  CheckCircle2,
-  AlertCircle
+  MoreHorizontal,
+  ArrowLeft,
+  GraduationCap,
+  SlidersHorizontal,
+  CornerDownLeft
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { 
   ChatMessage, 
@@ -43,24 +53,25 @@ import {
 } from "@/services/chatbotLearningEngine";
 
 const QUICK_PROMPTS = [
-  "How does certificate verification work on EduProof?",
-  "How do I create an ATS-friendly CV with verified credentials?",
-  "What is the difference between a student and recruiter account?",
-  "Remember that my target role is Full-Stack Engineer",
+  "How does certificate verification work?",
+  "How do I create an ATS-friendly CV with badges?",
+  "Candidate vs Recruiter account differences",
+  "Remember that my target role is Senior Engineer",
   "Explain quantum computing in simple words",
-  "Write a clean React hook for debouncing input",
 ];
 
 const INITIAL_MESSAGE: ChatMessage = {
   role: "assistant",
-  content: "Hello! Welcome to **EduProof**.\n\nI am your **Self-Learning AI Assistant**. I remember our conversations, adapt to your preferences, and learn directly from your feedback and corrections.\n\nHow can I help you today?",
+  content: "Hello! Welcome to **EduProof**.\n\nI am your **Self-Learning AI Assistant**. I continuously retain conversation facts, adapt to your preferences, and train directly on your feedback and corrections.\n\nWhat would you like to explore today?",
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 };
 
 export const EduProofChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<"chat" | "memory">("chat");
+  const [viewMode, setViewMode] = useState<"chat" | "memory">("chat");
+  const [showTeachModal, setShowTeachModal] = useState(false);
+  
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
       const saved = localStorage.getItem("eduproof_chat_history");
@@ -69,10 +80,11 @@ export const EduProofChatbot: React.FC = () => {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch (_err) {
-      // Storage access or JSON parse issue
+      // Storage access issue
     }
     return [INITIAL_MESSAGE];
   });
+  
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -99,7 +111,7 @@ export const EduProofChatbot: React.FC = () => {
       // Storage quota or storage disabled
     }
     scrollAreaRef.current?.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, isLoading]);
+  }, [messages, isLoading, correctionTargetIdx]);
 
   // Sync memories when updated
   useEffect(() => {
@@ -112,17 +124,17 @@ export const EduProofChatbot: React.FC = () => {
 
   // Focus input when opened
   useEffect(() => {
-    if (isOpen && activeTab === "chat") {
+    if (isOpen && viewMode === "chat") {
       setTimeout(() => inputRef.current?.focus(), 150);
     }
-  }, [isOpen, activeTab]);
+  }, [isOpen, viewMode]);
 
   // Listen to custom open event from anywhere in the app
   useEffect(() => {
     const handleOpenChat = (event: Event) => {
       const customEvent = event as CustomEvent<{ prompt?: string }>;
       setIsOpen(true);
-      setActiveTab("chat");
+      setViewMode("chat");
       if (customEvent.detail?.prompt) {
         setInput(customEvent.detail.prompt);
         setTimeout(() => inputRef.current?.focus(), 150);
@@ -147,7 +159,6 @@ export const EduProofChatbot: React.FC = () => {
     }
 
     window.speechSynthesis.cancel();
-    // Clean markdown formatting for smoother voice synthesis
     const cleanText = text
       .replace(/[#*_`~>-]/g, " ")
       .replace(/\[(.*?)\]\(.*?\)/g, "$1")
@@ -186,12 +197,12 @@ export const EduProofChatbot: React.FC = () => {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages([...nextMessages, assistantMessage]);
-      // Update local memory list in case new facts were learned from prompt
       setMemories(getLearnedMemories());
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : "Network error";
       const errorMessage: ChatMessage = {
         role: "assistant",
-        content: `I encountered an issue processing your request.\n\n${error.message || "Please check your network connection."}`,
+        content: `I encountered an issue processing your request.\n\n${errorMsg}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages([...nextMessages, errorMessage]);
@@ -200,39 +211,43 @@ export const EduProofChatbot: React.FC = () => {
     }
   };
 
-  // Feedback Handling
   const handleThumbsUp = (index: number, msg: ChatMessage) => {
     const prevUserMsg = messages[index - 1]?.content || "general query";
     recordFeedback(prevUserMsg, msg.content, true);
     setFeedbackGiven(prev => ({ ...prev, [index]: "up" }));
-    toast.success("🧠 Memory reinforced! I've noted this as a high-quality answer.");
+    toast.success("🧠 Assistant reinforced! Saved pattern to memory.");
     setMemories(getLearnedMemories());
   };
 
   const handleOpenCorrection = (index: number) => {
     setCorrectionTargetIdx(index);
+    setFeedbackGiven(prev => ({ ...prev, [index]: "down" }));
     setCorrectionInput("");
   };
 
   const handleSaveCorrection = (index: number, msg: ChatMessage) => {
-    if (!correctionInput.trim()) return;
-    const prevUserMsg = messages[index - 1]?.content || "general query";
+    if (!correctionInput.trim()) {
+      setCorrectionTargetIdx(null);
+      return;
+    }
+
+    const prevUserMsg = messages[index - 1]?.content || "unknown query";
     recordFeedback(prevUserMsg, msg.content, false, correctionInput.trim());
-    setFeedbackGiven(prev => ({ ...prev, [index]: "down" }));
+    toast.success("✨ Self-trained! Assistant memory updated with your correction.");
     setCorrectionTargetIdx(null);
     setCorrectionInput("");
-    toast.success("🧠 Learned! I've updated my internal memory with your correction.");
     setMemories(getLearnedMemories());
   };
 
-  // Manual Direct Teaching
   const handleTeachAssistant = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTeachFact.trim()) return;
 
-    addOrReinforceMemory(newTeachFact.trim(), newTeachCategory, "manual_teach");
+    const keywords = newTeachFact.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+    addOrReinforceMemory(newTeachFact.trim(), newTeachCategory, "manual", keywords);
+    toast.success("🧠 Knowledge stored into assistant memory!");
     setNewTeachFact("");
-    toast.success("🧠 New knowledge taught and permanently stored!");
+    setShowTeachModal(false);
     setMemories(getLearnedMemories());
   };
 
@@ -246,7 +261,7 @@ export const EduProofChatbot: React.FC = () => {
     if (confirm("Reset learned memory to original defaults?")) {
       resetLearnedMemories();
       setMemories(getLearnedMemories());
-      toast.success("Memories reset to foundational platform knowledge.");
+      toast.success("Memories reset to baseline knowledge.");
     }
   };
 
@@ -292,284 +307,280 @@ export const EduProofChatbot: React.FC = () => {
       {/* Floating Launcher Button */}
       {!isOpen && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
-          <div 
+          <button 
             onClick={() => setIsOpen(true)}
-            className="hidden sm:flex items-center gap-2.5 bg-card/95 backdrop-blur-md px-5 py-3 rounded-full border border-border shadow-md text-sm font-semibold text-foreground hover:border-primary/50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
+            className="hidden sm:flex items-center gap-2.5 bg-background/95 backdrop-blur-md px-4 py-2.5 rounded-full border border-border/80 shadow-lg text-xs font-semibold text-foreground hover:border-primary/50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
           >
-            <Shield className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-            <span>EduProof Assistant</span>
-            <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+            <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+              <Shield className="w-3 h-3 text-primary group-hover:scale-110 transition-transform" />
+            </div>
+            <span>EduProof AI</span>
+            <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               <Brain className="w-3 h-3" />
               {memories.length}
             </span>
-          </div>
+          </button>
 
           <button
             onClick={() => setIsOpen(true)}
             aria-label="Open Assistant"
-            className="group relative w-15 h-15 rounded-2xl bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-primary/20"
+            className="group relative w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary to-primary/80 text-primary-foreground shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 hover:shadow-primary/30 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-primary/20"
           >
-            <Shield className="w-7 h-7 transition-transform group-hover:scale-110 duration-200" />
-            <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-emerald-400 border-2 border-primary rounded-full animate-pulse" />
+            <Shield className="w-6 h-6 transition-transform group-hover:scale-110 duration-200" />
+            <span className="absolute top-1 right-1 w-3 h-3 bg-emerald-400 border-2 border-background rounded-full animate-pulse" />
           </button>
         </div>
       )}
 
-      {/* Main Chat Window */}
+      {/* Main Chat Architecture */}
       {isOpen && (
         <div 
-          className={`fixed z-50 bg-card border border-border shadow-2xl rounded-3xl flex flex-col overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-6 ${
+          className={`fixed z-50 bg-background/95 backdrop-blur-xl border border-border/70 shadow-2xl rounded-3xl flex flex-col overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 ${
             isExpanded 
-              ? "bottom-4 right-4 left-4 sm:left-auto sm:w-[740px] top-4 sm:top-auto sm:h-[88vh]" 
-              : "bottom-4 right-4 left-4 sm:left-auto sm:w-[480px] h-[660px] max-h-[92vh]"
+              ? "bottom-4 right-4 left-4 sm:left-auto sm:w-[760px] top-4 sm:top-auto sm:h-[88vh]" 
+              : "bottom-4 right-4 left-4 sm:left-auto sm:w-[460px] h-[640px] max-h-[92vh]"
           }`}
         >
-          {/* Header */}
-          <div className="px-5 py-3.5 bg-card border-b border-border flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold">
-                  <Shield className="w-5 h-5 text-primary" />
+          {/* Refined Glassmorphic Header */}
+          <header className="px-4 py-3 bg-card/60 backdrop-blur-md border-b border-border/60 flex items-center justify-between flex-shrink-0">
+            {/* Left: Brand & Status */}
+            <div className="flex items-center gap-2.5">
+              {viewMode === "memory" ? (
+                <button
+                  onClick={() => setViewMode("chat")}
+                  className="w-8 h-8 rounded-xl bg-secondary/80 hover:bg-secondary text-foreground flex items-center justify-center transition-all"
+                  title="Back to Chat"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+              ) : (
+                <div className="relative">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary/20 to-primary/5 text-primary flex items-center justify-center font-bold border border-primary/20">
+                    <Shield className="w-4.5 h-4.5 text-primary" />
+                  </div>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-background rounded-full animate-pulse" />
                 </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-card rounded-full" />
-              </div>
+              )}
+
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-display font-bold text-foreground text-base tracking-tight leading-tight">
-                    EduProof Assistant
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-display font-bold text-foreground text-sm tracking-tight">
+                    {viewMode === "memory" ? "Memory & Training" : "EduProof AI"}
                   </h3>
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/30 text-primary bg-primary/5">
-                    Self-Learning AI
-                  </Badge>
+                  <span className="text-[10px] font-medium px-1.5 py-0.2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    Self-Learning
+                  </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                  <span>Online • Continuously Training</span>
-                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  {viewMode === "memory" 
+                    ? `${memories.length} facts in persistent memory` 
+                    : "Gemini 2.5 • Continuous Training"}
+                </p>
               </div>
             </div>
 
-            {/* Navigation & Controls */}
-            <div className="flex items-center gap-1">
-              {/* Tab Switcher: Chat vs Brain */}
-              <div className="flex items-center bg-secondary rounded-xl p-0.5 mr-1 border border-border/60">
-                <button
-                  onClick={() => setActiveTab("chat")}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
-                    activeTab === "chat" 
-                      ? "bg-card text-foreground shadow-xs" 
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title="Chat with Assistant"
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Chat</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab("memory")}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
-                    activeTab === "memory" 
-                      ? "bg-primary text-primary-foreground shadow-xs" 
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title="Learned Memory & Training Center"
-                >
-                  <Brain className="w-3.5 h-3.5" />
-                  <span>Memory ({memories.length})</span>
-                </button>
-              </div>
+            {/* Right: Controls & Memory Pill */}
+            <div className="flex items-center gap-1.5">
+              {/* Memory Drawer Trigger Pill */}
+              <button
+                onClick={() => setViewMode(viewMode === "chat" ? "memory" : "chat")}
+                className={`h-7 px-2.5 rounded-full text-xs font-medium flex items-center gap-1.5 border transition-all ${
+                  viewMode === "memory"
+                    ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                    : "bg-secondary/70 hover:bg-secondary text-foreground border-border/60 hover:border-primary/40"
+                }`}
+                title="View & manage learned memories"
+              >
+                <Brain className="w-3.5 h-3.5 text-primary group-hover:scale-110" />
+                <span className="font-semibold">{memories.length}</span>
+              </button>
 
-              {/* Export transcript */}
-              {activeTab === "chat" && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary hidden sm:flex"
-                  title="Download Chat Transcript"
-                  onClick={handleExportTranscript}
-                >
-                  <Download className="w-4 h-4" />
-                </Button>
-              )}
-
-              {/* Clear chat */}
-              {activeTab === "chat" && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 hidden sm:flex"
-                  title="Clear Chat History"
-                  onClick={handleClearChat}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              )}
+              {/* More Actions Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="w-7 h-7 rounded-lg text-muted-foreground hover:text-foreground">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 text-xs">
+                  <DropdownMenuItem onClick={() => setShowTeachModal(true)} className="gap-2 cursor-pointer">
+                    <Plus className="w-3.5 h-3.5 text-primary" />
+                    <span>Teach New Knowledge</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportTranscript} className="gap-2 cursor-pointer">
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Export Transcript</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleResetMemories} className="gap-2 cursor-pointer text-muted-foreground">
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Reset Memory Defaults</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleClearChat} className="gap-2 cursor-pointer text-destructive">
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Clear Chat History</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Expand / Minimize */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary hidden sm:flex"
-                title={isExpanded ? "Restore Size" : "Expand"}
+                className="w-7 h-7 rounded-lg text-muted-foreground hover:text-foreground hidden sm:flex"
+                title={isExpanded ? "Restore Size" : "Expand Size"}
                 onClick={() => setIsExpanded(!isExpanded)}
               >
-                {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
               </Button>
 
               {/* Close */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary"
-                title="Close"
+                className="w-7 h-7 rounded-lg text-muted-foreground hover:text-foreground"
+                title="Close Assistant"
                 onClick={() => setIsOpen(false)}
               >
                 <X className="w-4 h-4" />
               </Button>
             </div>
-          </div>
+          </header>
 
-          {/* TAB 1: INTERACTIVE CHAT */}
-          {activeTab === "chat" && (
+          {/* VIEW 1: CHAT INTERFACE */}
+          {viewMode === "chat" && (
             <>
-              {/* Active Learning Banner */}
-              <div className="bg-primary/5 border-b border-primary/10 px-4 py-2 flex items-center justify-between text-xs text-primary">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Brain className="w-3.5 h-3.5 text-primary" />
-                  <span>Self-Learning Active: Retaining facts & feedback automatically.</span>
-                </span>
-                <button 
-                  onClick={() => setActiveTab("memory")}
-                  className="underline hover:text-primary/80 font-semibold"
-                >
-                  View Memory ({memories.length})
-                </button>
-              </div>
-
-              {/* Messages Container */}
+              {/* Message Stream */}
               <div 
                 ref={scrollAreaRef} 
-                className="flex-1 overflow-y-auto p-5 space-y-4 min-h-0 bg-secondary/15"
+                className="flex-1 overflow-y-auto px-4 py-4 space-y-3.5 min-h-0 bg-secondary/10"
               >
                 {messages.map((msg, index) => {
                   const isUser = msg.role === "user";
                   return (
                     <div 
                       key={index} 
-                      className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"} group/msg`}
+                      className={`flex gap-2.5 ${isUser ? "justify-end" : "justify-start"} group/msg`}
                     >
                       {!isUser && (
-                        <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
-                          <Shield className="w-4 h-4" />
+                        <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5 border border-primary/20">
+                          <Shield className="w-3.5 h-3.5" />
                         </div>
                       )}
 
-                      <div className={`relative max-w-[85%] rounded-2xl px-5 py-3.5 text-[15px] shadow-xs ${
+                      <div className={`relative max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-xs transition-all ${
                         isUser 
-                          ? "bg-primary text-primary-foreground rounded-tr-xs" 
-                          : "bg-card text-foreground border border-border/80 rounded-tl-xs"
+                          ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-tr-xs" 
+                          : "bg-card text-foreground border border-border/70 rounded-tl-xs"
                       }`}>
                         {isUser ? (
                           <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                         ) : (
-                          <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-foreground leading-relaxed break-words">
+                          <div className="prose prose-sm dark:prose-invert max-w-none text-foreground leading-relaxed break-words">
                             <ReactMarkdown>{msg.content}</ReactMarkdown>
                           </div>
                         )}
 
-                        {/* Message Actions Bar (for Assistant) */}
-                        <div className={`flex items-center justify-between mt-2 pt-1.5 border-t ${
-                          isUser ? "border-primary-foreground/20 text-primary-foreground/75" : "border-border/40 text-muted-foreground"
-                        } text-xs`}>
-                          <span>{msg.timestamp || ""}</span>
+                        {/* Action Bar (Assistant Only) */}
+                        {!isUser && (
+                          <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-border/40 text-[11px] text-muted-foreground">
+                            <span>{msg.timestamp || ""}</span>
 
-                          {!isUser && (
-                            <div className="flex items-center gap-1.5">
-                              {/* Read Aloud button */}
+                            <div className="flex items-center gap-1">
+                              {/* Read Aloud */}
                               <button
                                 onClick={() => handleToggleSpeech(msg.content, index)}
-                                className={`p-1 rounded-md transition-colors ${
-                                  speakingIndex === index 
-                                    ? "text-primary bg-primary/10 font-medium" 
-                                    : "hover:text-foreground hover:bg-secondary/60"
+                                className={`p-1 rounded hover:bg-secondary transition-colors ${
+                                  speakingIndex === index ? "text-primary font-bold bg-primary/10" : "hover:text-foreground"
                                 }`}
                                 title={speakingIndex === index ? "Stop voice" : "Read aloud"}
                               >
                                 {speakingIndex === index ? (
-                                  <VolumeX className="w-3.5 h-3.5 text-primary" />
+                                  <VolumeX className="w-3.5 h-3.5 text-primary animate-pulse" />
                                 ) : (
                                   <Volume2 className="w-3.5 h-3.5" />
                                 )}
                               </button>
 
-                              {/* Thumbs Up (Reinforce) */}
+                              {/* Thumbs Up (Reinforce Memory) */}
                               <button
                                 onClick={() => handleThumbsUp(index, msg)}
-                                className={`p-1 rounded-md transition-colors ${
-                                  feedbackGiven[index] === "up"
-                                    ? "text-emerald-600 bg-emerald-500/10 font-bold"
-                                    : "hover:text-emerald-600 hover:bg-secondary/60"
+                                disabled={feedbackGiven[index] !== undefined}
+                                className={`p-1 rounded hover:bg-secondary transition-colors ${
+                                  feedbackGiven[index] === "up" ? "text-emerald-500 font-bold bg-emerald-500/10" : "hover:text-emerald-500"
                                 }`}
-                                title="Reinforce: Good answer (helps bot learn)"
+                                title="Reinforce: Good response (bot learns this pattern)"
                               >
                                 <ThumbsUp className="w-3.5 h-3.5" />
                               </button>
 
-                              {/* Thumbs Down (Correction) */}
+                              {/* Thumbs Down (Inline Correction) */}
                               <button
                                 onClick={() => handleOpenCorrection(index)}
-                                className={`p-1 rounded-md transition-colors ${
-                                  feedbackGiven[index] === "down"
-                                    ? "text-destructive bg-destructive/10 font-bold"
-                                    : "hover:text-destructive hover:bg-secondary/60"
+                                disabled={feedbackGiven[index] !== undefined}
+                                className={`p-1 rounded hover:bg-secondary transition-colors ${
+                                  feedbackGiven[index] === "down" ? "text-rose-500 font-bold bg-rose-500/10" : "hover:text-rose-500"
                                 }`}
-                                title="Teach Correction: Fix this answer"
+                                title="Correction: Teach the bot the correct answer"
                               >
                                 <ThumbsDown className="w-3.5 h-3.5" />
                               </button>
 
-                              {/* Copy Text */}
+                              {/* Copy */}
                               <button
                                 onClick={() => handleCopy(msg.content, index)}
-                                className="p-1 rounded-md hover:text-foreground hover:bg-secondary/60 transition-colors"
+                                className="p-1 rounded hover:bg-secondary hover:text-foreground transition-colors"
                                 title="Copy text"
                               >
                                 {copiedIndex === index ? (
-                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                  <Check className="w-3.5 h-3.5 text-emerald-500" />
                                 ) : (
                                   <Copy className="w-3.5 h-3.5" />
                                 )}
                               </button>
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
 
-                        {/* Inline Correction Box if Thumbs Down clicked */}
+                        {/* User Timestamp */}
+                        {isUser && (
+                          <div className="flex justify-end mt-1 text-[10px] text-primary-foreground/70">
+                            <span>{msg.timestamp || ""}</span>
+                          </div>
+                        )}
+
+                        {/* Inline Correction Form */}
                         {correctionTargetIdx === index && (
-                          <div className="mt-3 p-3 bg-secondary/50 rounded-xl border border-primary/20 space-y-2 animate-in fade-in">
-                            <span className="text-xs font-semibold text-foreground flex items-center gap-1">
-                              <Brain className="w-3 h-3 text-primary" />
-                              Train Assistant: What is the correct information?
+                          <div className="mt-2.5 pt-2.5 border-t border-rose-500/20 bg-rose-500/5 p-2.5 rounded-xl space-y-2 animate-in fade-in">
+                            <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                              <GraduationCap className="w-3.5 h-3.5" />
+                              Train Assistant: What should it have answered?
                             </span>
-                            <div className="flex gap-2">
+                            <div className="flex gap-1.5">
                               <Input
                                 value={correctionInput}
                                 onChange={(e) => setCorrectionInput(e.target.value)}
-                                placeholder="e.g. Actually, EduProof also supports bulk CSV upload..."
-                                className="h-8 text-xs bg-background"
+                                placeholder="Enter correct facts to train memory..."
+                                className="h-7 text-xs bg-background"
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    handleSaveCorrection(index, msg);
+                                  }
+                                }}
                               />
                               <Button
                                 size="sm"
                                 onClick={() => handleSaveCorrection(index, msg)}
-                                className="h-8 text-xs px-3"
+                                className="h-7 text-xs px-2.5 bg-rose-600 hover:bg-rose-700 text-white flex-shrink-0"
                               >
-                                Train Bot
+                                Teach
                               </Button>
                               <Button
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => setCorrectionTargetIdx(null)}
-                                className="h-8 text-xs px-2"
+                                className="h-7 text-xs px-2"
                               >
                                 Cancel
                               </Button>
@@ -581,32 +592,32 @@ export const EduProofChatbot: React.FC = () => {
                   );
                 })}
 
-                {/* Loading Indicator */}
+                {/* Loading Bubble */}
                 {isLoading && (
-                  <div className="flex gap-3 justify-start">
-                    <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
-                      <Shield className="w-4 h-4" />
+                  <div className="flex gap-2.5 justify-start">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5 border border-primary/20">
+                      <Shield className="w-3.5 h-3.5" />
                     </div>
-                    <div className="bg-card border border-border/80 rounded-2xl rounded-tl-xs px-5 py-3.5 text-sm text-muted-foreground flex items-center gap-2.5 shadow-xs">
-                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                      <span>Assistant is thinking & learning...</span>
+                    <div className="bg-card border border-border/70 rounded-2xl rounded-tl-xs px-4 py-3 text-xs text-muted-foreground flex items-center gap-2 shadow-xs">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                      <span>Thinking & referencing learned memory...</span>
                     </div>
                   </div>
                 )}
 
-                {/* Suggested Prompts */}
+                {/* Prompt Suggestions */}
                 {messages.length <= 2 && (
-                  <div className="pt-3">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-primary" />
-                      Suggested Questions & Training Prompts:
+                  <div className="pt-2">
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3 text-primary" />
+                      Suggested Queries & Prompts:
                     </p>
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-1 gap-1.5">
                       {QUICK_PROMPTS.map((prompt, i) => (
                         <button
                           key={i}
                           onClick={() => handleSendMessage(prompt)}
-                          className="w-full text-left text-sm bg-card hover:bg-primary/5 hover:border-primary/50 text-foreground border border-border/80 px-4 py-3 rounded-xl transition-all duration-200 shadow-2xs block font-medium"
+                          className="w-full text-left text-xs bg-card hover:bg-primary/5 hover:border-primary/40 text-foreground border border-border/60 px-3 py-2 rounded-xl transition-all shadow-2xs font-medium"
                         >
                           {prompt}
                         </button>
@@ -616,14 +627,14 @@ export const EduProofChatbot: React.FC = () => {
                 )}
               </div>
 
-              {/* Input Area */}
-              <div className="p-4 border-t border-border bg-card">
+              {/* Input Dock */}
+              <div className="p-3 border-t border-border/60 bg-card/60 backdrop-blur-md">
                 <form 
                   onSubmit={(e) => {
                     e.preventDefault();
                     handleSendMessage();
                   }}
-                  className="flex items-center gap-2.5"
+                  className="relative flex items-center gap-2 bg-secondary/50 rounded-2xl border border-border/70 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/20 transition-all p-1.5 pl-3"
                 >
                   <Input
                     ref={inputRef}
@@ -631,105 +642,116 @@ export const EduProofChatbot: React.FC = () => {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask anything or teach me (e.g., 'Remember that...')..."
                     disabled={isLoading}
-                    className="bg-secondary/40 border-border/80 focus:border-primary text-base rounded-xl py-6 flex-1 px-4"
+                    className="border-0 shadow-none focus-visible:ring-0 text-xs sm:text-sm bg-transparent p-0 h-9 flex-1 placeholder:text-muted-foreground/70"
                   />
-                  <Button
-                    type="submit"
-                    size="icon"
-                    disabled={isLoading || !input.trim()}
-                    className="w-12 h-12 rounded-xl bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 transition-all flex-shrink-0"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Send className="w-5 h-5" />
-                    )}
-                  </Button>
+
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowTeachModal(true)}
+                      className="h-8 px-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-secondary flex items-center gap-1 transition-colors"
+                      title="Teach new knowledge"
+                    >
+                      <Brain className="w-3.5 h-3.5 text-primary" />
+                      <span className="hidden sm:inline text-[11px]">Teach</span>
+                    </button>
+
+                    <Button
+                      type="submit"
+                      size="icon"
+                      disabled={isLoading || !input.trim()}
+                      className="w-8 h-8 rounded-xl bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 transition-all flex-shrink-0"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Send className="w-3.5 h-3.5" />
+                      )}
+                    </Button>
+                  </div>
                 </form>
               </div>
             </>
           )}
 
-          {/* TAB 2: SELF-TRAINING & LEARNED MEMORY CENTER */}
-          {activeTab === "memory" && (
-            <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-secondary/15">
-              {/* Header Box */}
-              <div className="bg-card rounded-2xl p-5 border border-border shadow-xs space-y-2">
+          {/* VIEW 2: DEDICATED MEMORY & SELF-TRAINING CENTER */}
+          {viewMode === "memory" && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-secondary/15">
+              {/* Overview & Reset Banner */}
+              <div className="bg-card rounded-2xl p-4 border border-border/70 shadow-xs space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
                       <Brain className="w-4 h-4" />
                     </div>
-                    <h4 className="font-display font-bold text-foreground text-base">
-                      Learned Knowledge & Self-Training
-                    </h4>
+                    <span className="font-display font-bold text-foreground text-sm">
+                      Autonomous Learned Knowledge
+                    </span>
                   </div>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     onClick={handleResetMemories}
-                    className="text-xs h-7 text-muted-foreground hover:text-foreground gap-1"
+                    className="text-[11px] h-7 text-muted-foreground hover:text-foreground gap-1 px-2.5"
                   >
                     <RefreshCw className="w-3 h-3" />
                     Reset Defaults
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  The assistant stores insights, corrections, and instructions learned from your conversations. You can also directly teach it new platform facts or personal preferences below.
+                  Facts, user profile preferences, and corrections learned from chats are automatically injected into the model prompt to personalize and refine responses.
                 </p>
               </div>
 
-              {/* Direct Teaching Form */}
-              <form onSubmit={handleTeachAssistant} className="bg-card rounded-2xl p-5 border border-primary/20 shadow-xs space-y-3">
-                <span className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
-                  <Plus className="w-3.5 h-3.5 text-primary" /> Teach Assistant New Knowledge
+              {/* Quick Teach Box */}
+              <form onSubmit={handleTeachAssistant} className="bg-card rounded-2xl p-4 border border-primary/20 shadow-xs space-y-2.5">
+                <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Plus className="w-3.5 h-3.5 text-primary" /> Teach Assistant Directly
                 </span>
                 <Input
                   value={newTeachFact}
                   onChange={(e) => setNewTeachFact(e.target.value)}
-                  placeholder="e.g. EduProof has partnered with Stanford Online for 2026..."
-                  className="text-sm bg-secondary/30 h-10"
+                  placeholder="e.g. EduProof issues cryptographic SHA-256 anchors for CVs..."
+                  className="text-xs bg-secondary/30 h-8"
                 />
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-2">
                   <select
                     value={newTeachCategory}
                     onChange={(e) => setNewTeachCategory(e.target.value as MemoryCategory)}
-                    className="text-xs h-9 px-3 rounded-lg border border-border bg-secondary/30 text-foreground"
+                    className="text-xs h-8 px-2.5 rounded-lg border border-border bg-secondary/30 text-foreground"
                   >
                     <option value="platform_fact">Platform Knowledge</option>
-                    <option value="user_profile">User Profile / Preference</option>
+                    <option value="user_profile">User Preference / Role</option>
                     <option value="instruction">Special Instruction</option>
                     <option value="correction">Verified Correction</option>
                     <option value="custom_qa">Custom Q&A</option>
                   </select>
 
-                  <Button type="submit" size="sm" disabled={!newTeachFact.trim()} className="gap-1.5">
-                    <Brain className="w-3.5 h-3.5" />
-                    Train Assistant
+                  <Button type="submit" size="sm" disabled={!newTeachFact.trim()} className="h-8 text-xs gap-1">
+                    <Brain className="w-3 h-3" />
+                    Train
                   </Button>
                 </div>
               </form>
 
               {/* Search & Filter */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      value={memorySearch}
-                      onChange={(e) => setMemorySearch(e.target.value)}
-                      placeholder="Search learned facts..."
-                      className="pl-8 text-xs h-8 bg-card"
-                    />
-                  </div>
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={memorySearch}
+                    onChange={(e) => setMemorySearch(e.target.value)}
+                    placeholder="Search memories..."
+                    className="pl-8 text-xs h-8 bg-card"
+                  />
                 </div>
 
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1">
                   {["all", "platform_fact", "user_profile", "correction", "instruction"].map((cat) => (
                     <button
                       key={cat}
                       onClick={() => setMemoryFilter(cat)}
-                      className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-colors ${
+                      className={`text-[11px] px-2.5 py-0.5 rounded-lg font-medium transition-colors ${
                         memoryFilter === cat
                           ? "bg-primary text-primary-foreground font-semibold"
                           : "bg-card border border-border/70 text-muted-foreground hover:text-foreground"
@@ -741,29 +763,25 @@ export const EduProofChatbot: React.FC = () => {
                 </div>
               </div>
 
-              {/* Learned Memories List */}
-              <div className="space-y-2.5">
+              {/* Memories List */}
+              <div className="space-y-2">
                 {filteredMemories.length === 0 ? (
-                  <div className="bg-card rounded-xl p-8 text-center text-muted-foreground border border-dashed border-border">
-                    <AlertCircle className="w-6 h-6 mx-auto mb-1 opacity-60" />
-                    <p className="text-xs">No learned memories found matching your filter.</p>
+                  <div className="bg-card rounded-xl p-6 text-center text-muted-foreground border border-dashed border-border text-xs">
+                    No memories found matching your search.
                   </div>
                 ) : (
                   filteredMemories.map((m) => (
                     <div 
                       key={m.id}
-                      className="bg-card rounded-xl p-4 border border-border/70 shadow-2xs space-y-2 flex items-start justify-between gap-3 group"
+                      className="bg-card rounded-xl p-3 border border-border/70 shadow-2xs space-y-1.5 flex items-start justify-between gap-2.5 group"
                     >
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant="secondary" className="text-[10px] capitalize">
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
                             {m.category.replace("_", " ")}
-                          </Badge>
-                          <span className="text-[10px] font-mono text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded font-medium">
-                            Reinforced {m.reinforcementCount}x
                           </span>
-                          <span className="text-[10px] text-muted-foreground">
-                            via {m.source.replace("_", " ")}
+                          <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                            Reinforced {m.reinforcementCount}x
                           </span>
                         </div>
                         <p className="text-xs text-foreground font-medium leading-relaxed">
@@ -775,7 +793,7 @@ export const EduProofChatbot: React.FC = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDeleteMemoryItem(m.id)}
-                        className="w-7 h-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="w-6 h-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Delete memory"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -783,6 +801,66 @@ export const EduProofChatbot: React.FC = () => {
                     </div>
                   ))
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* TEACH MODAL OVERLAY */}
+          {showTeachModal && (
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-card border border-border shadow-2xl rounded-2xl p-5 w-full max-w-sm space-y-4 animate-in zoom-in-95">
+                <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                  <div className="flex items-center gap-2">
+                    <Brain className="w-4 h-4 text-primary" />
+                    <h4 className="font-bold text-sm text-foreground">Teach Assistant Knowledge</h4>
+                  </div>
+                  <button onClick={() => setShowTeachModal(false)} className="text-muted-foreground hover:text-foreground">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Fact or Instruction</label>
+                    <Input
+                      value={newTeachFact}
+                      onChange={(e) => setNewTeachFact(e.target.value)}
+                      placeholder="e.g. Always format certificate dates in YYYY-MM-DD..."
+                      className="text-xs"
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Category</label>
+                    <select
+                      value={newTeachCategory}
+                      onChange={(e) => setNewTeachCategory(e.target.value as MemoryCategory)}
+                      className="w-full text-xs h-9 px-3 rounded-lg border border-border bg-background text-foreground"
+                    >
+                      <option value="platform_fact">Platform Knowledge</option>
+                      <option value="user_profile">User Preference / Target Role</option>
+                      <option value="instruction">Special Formatting Instruction</option>
+                      <option value="correction">Verified Correction</option>
+                      <option value="custom_qa">Custom Q&A Pair</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-border/60">
+                  <Button variant="ghost" size="sm" onClick={() => setShowTeachModal(false)} className="h-8 text-xs">
+                    Cancel
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={handleTeachAssistant} 
+                    disabled={!newTeachFact.trim()}
+                    className="h-8 text-xs gap-1.5"
+                  >
+                    <Brain className="w-3.5 h-3.5" />
+                    Save & Train
+                  </Button>
+                </div>
               </div>
             </div>
           )}
