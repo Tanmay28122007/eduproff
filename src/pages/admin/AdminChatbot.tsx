@@ -176,7 +176,7 @@ const AdminChatbot = () => {
           <div>
             <div className="flex items-center gap-2">
               <span>Admin Assistant</span>
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/20">
                 <Brain className="w-3 h-3" />
                 {memories.length} Memories Learned
               </span>

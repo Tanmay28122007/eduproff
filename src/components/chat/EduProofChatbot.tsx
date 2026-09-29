@@ -309,13 +309,13 @@ export const EduProofChatbot: React.FC = () => {
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3">
           <button 
             onClick={() => setIsOpen(true)}
-            className="hidden sm:flex items-center gap-2.5 bg-background/95 backdrop-blur-md px-4 py-2.5 rounded-full border border-border/80 shadow-lg text-xs font-semibold text-foreground hover:border-primary/50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
+            className="hidden sm:flex items-center gap-2.5 bg-background/95 backdrop-blur-md px-4 py-2.5 rounded-full border border-border/80 shadow-lg text-xs font-semibold text-foreground hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
           >
-            <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-              <Shield className="w-3 h-3 text-primary group-hover:scale-110 transition-transform" />
+            <div className="w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+              <Shield className="w-3 h-3 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
             </div>
             <span>EduProof AI</span>
-            <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
               <Brain className="w-3 h-3" />
               {memories.length}
             </span>
@@ -324,7 +324,7 @@ export const EduProofChatbot: React.FC = () => {
           <button
             onClick={() => setIsOpen(true)}
             aria-label="Open Assistant"
-            className="group relative w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary to-primary/80 text-primary-foreground shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 hover:shadow-primary/30 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-primary/20"
+            className="group relative w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-600 to-violet-600 text-white shadow-xl shadow-indigo-500/25 ring-2 ring-indigo-400/20 flex items-center justify-center hover:scale-105 active:scale-95 hover:shadow-indigo-500/40 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-indigo-500/30"
           >
             <Shield className="w-6 h-6 transition-transform group-hover:scale-110 duration-200" />
             <span className="absolute top-1 right-1 w-3 h-3 bg-emerald-400 border-2 border-background rounded-full animate-pulse" />
@@ -355,8 +355,8 @@ export const EduProofChatbot: React.FC = () => {
                 </button>
               ) : (
                 <div className="relative">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary/20 to-primary/5 text-primary flex items-center justify-center font-bold border border-primary/20">
-                    <Shield className="w-4.5 h-4.5 text-primary" />
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500/20 via-indigo-500/10 to-violet-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold border border-indigo-500/25">
+                    <Shield className="w-4.5 h-4.5 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-background rounded-full animate-pulse" />
                 </div>
@@ -367,7 +367,7 @@ export const EduProofChatbot: React.FC = () => {
                   <h3 className="font-display font-bold text-foreground text-sm tracking-tight">
                     {viewMode === "memory" ? "Memory & Training" : "EduProof AI"}
                   </h3>
-                  <span className="text-[10px] font-medium px-1.5 py-0.2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="text-[10px] font-medium px-1.5 py-0.2 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
                     Self-Learning
                   </span>
                 </div>
@@ -463,14 +463,14 @@ export const EduProofChatbot: React.FC = () => {
                       className={`flex gap-2.5 ${isUser ? "justify-end" : "justify-start"} group/msg`}
                     >
                       {!isUser && (
-                        <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5 border border-primary/20">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500/15 to-violet-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0 mt-0.5 border border-indigo-500/20">
                           <Shield className="w-3.5 h-3.5" />
                         </div>
                       )}
 
                       <div className={`relative max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-xs transition-all ${
                         isUser 
-                          ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground rounded-tr-xs" 
+                          ? "bg-gradient-to-r from-indigo-600 via-indigo-600 to-violet-600 text-white rounded-tr-xs shadow-md shadow-indigo-500/15" 
                           : "bg-card text-foreground border border-border/70 rounded-tl-xs"
                       }`}>
                         {isUser ? (
@@ -491,12 +491,12 @@ export const EduProofChatbot: React.FC = () => {
                               <button
                                 onClick={() => handleToggleSpeech(msg.content, index)}
                                 className={`p-1 rounded hover:bg-secondary transition-colors ${
-                                  speakingIndex === index ? "text-primary font-bold bg-primary/10" : "hover:text-foreground"
+                                  speakingIndex === index ? "text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-500/10" : "hover:text-foreground"
                                 }`}
                                 title={speakingIndex === index ? "Stop voice" : "Read aloud"}
                               >
                                 {speakingIndex === index ? (
-                                  <VolumeX className="w-3.5 h-3.5 text-primary animate-pulse" />
+                                  <VolumeX className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 animate-pulse" />
                                 ) : (
                                   <Volume2 className="w-3.5 h-3.5" />
                                 )}
@@ -544,7 +544,7 @@ export const EduProofChatbot: React.FC = () => {
 
                         {/* User Timestamp */}
                         {isUser && (
-                          <div className="flex justify-end mt-1 text-[10px] text-primary-foreground/70">
+                          <div className="flex justify-end mt-1 text-[10px] text-white/75">
                             <span>{msg.timestamp || ""}</span>
                           </div>
                         )}
@@ -595,11 +595,11 @@ export const EduProofChatbot: React.FC = () => {
                 {/* Loading Bubble */}
                 {isLoading && (
                   <div className="flex gap-2.5 justify-start">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5 border border-primary/20">
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500/15 to-violet-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0 mt-0.5 border border-indigo-500/20">
                       <Shield className="w-3.5 h-3.5" />
                     </div>
                     <div className="bg-card border border-border/70 rounded-2xl rounded-tl-xs px-4 py-3 text-xs text-muted-foreground flex items-center gap-2 shadow-xs">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600 dark:text-indigo-400" />
                       <span>Thinking & referencing learned memory...</span>
                     </div>
                   </div>
@@ -609,7 +609,7 @@ export const EduProofChatbot: React.FC = () => {
                 {messages.length <= 2 && (
                   <div className="pt-2">
                     <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Sparkles className="w-3 h-3 text-primary" />
+                      <Sparkles className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
                       Suggested Queries & Prompts:
                     </p>
                     <div className="grid grid-cols-1 gap-1.5">
@@ -617,7 +617,7 @@ export const EduProofChatbot: React.FC = () => {
                         <button
                           key={i}
                           onClick={() => handleSendMessage(prompt)}
-                          className="w-full text-left text-xs bg-card hover:bg-primary/5 hover:border-primary/40 text-foreground border border-border/60 px-3 py-2 rounded-xl transition-all shadow-2xs font-medium"
+                          className="w-full text-left text-xs bg-card hover:bg-indigo-500/5 hover:border-indigo-500/40 text-foreground border border-border/60 px-3 py-2 rounded-xl transition-all shadow-2xs font-medium"
                         >
                           {prompt}
                         </button>
@@ -634,7 +634,7 @@ export const EduProofChatbot: React.FC = () => {
                     e.preventDefault();
                     handleSendMessage();
                   }}
-                  className="relative flex items-center gap-2 bg-secondary/50 rounded-2xl border border-border/70 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/20 transition-all p-1.5 pl-3"
+                  className="relative flex items-center gap-2 bg-secondary/50 rounded-2xl border border-border/70 focus-within:border-indigo-500/70 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all p-1.5 pl-3"
                 >
                   <Input
                     ref={inputRef}
@@ -649,18 +649,18 @@ export const EduProofChatbot: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowTeachModal(true)}
-                      className="h-8 px-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-secondary flex items-center gap-1 transition-colors"
+                      className="h-8 px-2 rounded-xl text-xs text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-500/10 flex items-center gap-1 transition-colors"
                       title="Teach new knowledge"
                     >
-                      <Brain className="w-3.5 h-3.5 text-primary" />
-                      <span className="hidden sm:inline text-[11px]">Teach</span>
+                      <Brain className="w-3.5 h-3.5 text-indigo-500" />
+                      <span className="hidden sm:inline text-[11px] font-medium">Teach</span>
                     </button>
 
                     <Button
                       type="submit"
                       size="icon"
                       disabled={isLoading || !input.trim()}
-                      className="w-8 h-8 rounded-xl bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 transition-all flex-shrink-0"
+                      className="w-8 h-8 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-xs transition-all flex-shrink-0"
                     >
                       {isLoading ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -780,7 +780,7 @@ export const EduProofChatbot: React.FC = () => {
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
                             {m.category.replace("_", " ")}
                           </span>
-                          <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
                             Reinforced {m.reinforcementCount}x
                           </span>
                         </div>
