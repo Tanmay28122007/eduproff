@@ -98,7 +98,7 @@ const GenerateCV = () => {
 
           doc.setFontSize(11);
           doc.setFont("helvetica", "bold");
-          doc.text(`✓ ${cert.title}`, margin, yPosition);
+          doc.text(`[Verified] ${cert.title}`, margin, yPosition);
           yPosition += 5;
 
           doc.setFontSize(9);

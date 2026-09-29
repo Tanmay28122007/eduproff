@@ -47,7 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const cachedRole = localStorage.getItem(`eduproof_cached_role_${u.id}`);
         return (cachedRole as UserRole) || "candidate";
       }
-    } catch {}
+    } catch (_err) {
+      // Storage access or JSON parse issue
+    }
     return null;
   });
 

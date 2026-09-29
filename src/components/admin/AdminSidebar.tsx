@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Award, Building2, Activity, LogOut, Flag, MessageSquare, Bot, Search } from "lucide-react";
+import { LayoutDashboard, Users, UserCog, Award, Building2, Activity, LogOut, Flag, MessageSquare, Bot, Search } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 
 const items = [
   { title: "Overview", url: "/admin", icon: LayoutDashboard },
+  { title: "All Users", url: "/admin/users", icon: UserCog },
   { title: "Candidates", url: "/admin/candidates", icon: Users },
   { title: "Recruiters", url: "/admin/recruiters", icon: Search },
   { title: "Certificates", url: "/admin/certificates", icon: Award },

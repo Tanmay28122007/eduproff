@@ -235,7 +235,9 @@ export function getEvaluationDataset(): DatasetAuditRecord[] {
   try {
     const raw = localStorage.getItem(DATASET_STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-  } catch {}
+  } catch (_err) {
+    // Storage access unavailable or JSON parse error
+  }
   return [];
 }
 
@@ -249,7 +251,9 @@ export function saveEvaluationDatasetRecord(record: DatasetAuditRecord): void {
       current.unshift(record);
     }
     localStorage.setItem(DATASET_STORAGE_KEY, JSON.stringify(current));
-  } catch {}
+  } catch (_err) {
+    // Storage quota or storage access error
+  }
 }
 
 /* =========================================================================

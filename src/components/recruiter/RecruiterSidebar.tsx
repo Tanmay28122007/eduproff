@@ -1,4 +1,4 @@
-import { Users, User, MessageSquare } from "lucide-react";
+import { Users, User, ShieldCheck, History } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -13,6 +13,8 @@ import {
 
 const items = [
   { title: "Candidate Directory", url: "/recruiter", icon: Users },
+  { title: "Trust Screening", url: "/recruiter/verify", icon: ShieldCheck },
+  { title: "Verification History", url: "/recruiter/history", icon: History },
   { title: "My Profile", url: "/recruiter/profile", icon: User },
 ];
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,7 @@ import {
   Hash,
   FileText,
   MessageSquare,
+  ExternalLink,
 } from "lucide-react";
 
 interface CandidateProfileData {
@@ -80,11 +81,7 @@ const CandidateProfile = () => {
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
 
-  useEffect(() => {
-    if (candidateId) fetchData();
-  }, [candidateId]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       if (!candidateId) return;
 
@@ -115,7 +112,11 @@ const CandidateProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [candidateId]);
+
+  useEffect(() => {
+    if (candidateId) fetchData();
+  }, [candidateId, fetchData]);
 
   if (loading) {
     return (
@@ -250,7 +251,7 @@ const CandidateProfile = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {cert.verification_status === "verified" ? (
                     <Badge className="bg-success/10 text-success border-success/20">
                       <CheckCircle className="w-3 h-3 mr-1" />
@@ -267,6 +268,12 @@ const CandidateProfile = () => {
                       Pending
                     </Badge>
                   )}
+                  <Button variant="outline" size="sm" asChild className="h-7 text-xs gap-1 ml-1">
+                    <Link to={`/check?id=${cert.id}`}>
+                      <ExternalLink className="w-3 h-3" />
+                      Inspect Trust
+                    </Link>
+                  </Button>
                 </div>
               </div>
             ))}

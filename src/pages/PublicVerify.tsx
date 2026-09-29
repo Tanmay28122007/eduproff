@@ -63,7 +63,7 @@ export default function PublicVerify() {
       }
 
       const title = issuedData?.course_name || userCert?.title || "Academic & Professional Achievement";
-      const issuer = issuedData?.student_name || userCert?.issuer || "Stanford Online / EduProof Network";
+      const issuer = issuedData?.institution_id || userCert?.issuer || "Stanford Online / EduProof Network";
       const studentName = issuedData?.student_name || "Verified Student Recipient";
       const issueDate = issuedData?.issue_date || userCert?.issue_date || new Date().toISOString().split("T")[0];
 

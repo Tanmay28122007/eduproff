@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,7 +43,6 @@ const Recruiter = () => {
   const userName = user?.email?.split("@")[0] || "there";
   
   const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -51,10 +50,6 @@ const Recruiter = () => {
   useEffect(() => {
     fetchVerifiedCertificates();
   }, []);
-
-  useEffect(() => {
-    filterCertificates();
-  }, [certificates, searchQuery, statusFilter]);
 
   const fetchVerifiedCertificates = async () => {
     try {
@@ -102,7 +97,7 @@ const Recruiter = () => {
     }
   };
 
-  const filterCertificates = () => {
+  const filteredCertificates = useMemo(() => {
     let filtered = certificates;
 
     if (statusFilter !== "all") {
@@ -118,8 +113,8 @@ const Recruiter = () => {
       );
     }
 
-    setFilteredCertificates(filtered);
-  };
+    return filtered;
+  }, [certificates, searchQuery, statusFilter]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {

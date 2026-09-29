@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,12 +37,7 @@ const AdminMessaging = () => {
   const [sentMessages, setSentMessages] = useState<MessageEntry[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
 
-  useEffect(() => {
-    fetchUsers();
-    fetchSentMessages();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoadingUsers(true);
     try {
       const [profilesRes, rolesRes] = await Promise.all([
@@ -72,9 +67,9 @@ const AdminMessaging = () => {
     } finally {
       setLoadingUsers(false);
     }
-  };
+  }, []);
 
-  const fetchSentMessages = async () => {
+  const fetchSentMessages = useCallback(async () => {
     if (!user) return;
     try {
       const { data: msgsData } = await supabase
@@ -106,7 +101,12 @@ const AdminMessaging = () => {
     } catch (err) {
       console.error("Error fetching sent messages:", err);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchUsers();
+    fetchSentMessages();
+  }, [fetchUsers, fetchSentMessages]);
 
   const handleSend = async () => {
     if (!selectedUser || !message.trim() || !user) return;

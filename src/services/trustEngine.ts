@@ -179,7 +179,7 @@ function runForensicAnalysis(file?: File | null): ForensicResult {
   let tamperRiskScore = 12;
   let fontConsistency = 96;
   let metadataIntegrity = true;
-  let copyPasteSignaturesDetected = false;
+  const copyPasteSignaturesDetected = false;
   let aiEditProbability = 10;
   const signals: string[] = ["PDF text vector fonts uniform"];
   const risks: string[] = [];
@@ -328,7 +328,7 @@ export async function analyzeAchievement(input: VerificationInput): Promise<Trus
 
   // Human Endorsements
   const endorsements = input.endorsements || [];
-  let humanScore = endorsements.length > 0 ? 85 : 30;
+  const humanScore = endorsements.length > 0 ? 85 : 30;
 
   // STEP 9: Risk & Confidence Score Calculation
   const overallConfidenceScore = Math.round(

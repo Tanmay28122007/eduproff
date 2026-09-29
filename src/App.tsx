@@ -90,6 +90,8 @@ const App = () => (
                 }
               >
                 <Route index element={<RecruiterOverview />} />
+                <Route path="verify" element={<RecruiterVerify />} />
+                <Route path="history" element={<RecruiterHistory />} />
                 <Route path="profile" element={<RecruiterProfile />} />
                 <Route path="candidate/:candidateId" element={<CandidateProfile />} />
               </Route>

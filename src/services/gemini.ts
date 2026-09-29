@@ -1,3 +1,9 @@
+import { 
+  autoLearnFromChat, 
+  buildLearnedMemoryContext, 
+  findLearnedFallbackMatch 
+} from "./chatbotLearningEngine";
+
 // Google Gemini AI Service for EduProof
 
 export interface ChatMessage {
@@ -7,8 +13,8 @@ export interface ChatMessage {
 }
 
 export const SUPPORTED_MODELS = [
-  { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", isDefault: true },
-  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash (Ultra-Fast & Stable)" },
+  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash (Ultra-Fast & Stable)", isDefault: true },
+  { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
   { id: "gemini-flash-latest", name: "Gemini Flash Latest" },
   { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro (Deep Reasoning)" },
 ];
@@ -31,7 +37,7 @@ export const setGeminiApiKey = (key: string) => {
 };
 
 export const getSelectedModel = (): string => {
-  const envModel = import.meta.env.VITE_GEMINI_MODEL || "gemini-3.5-flash";
+  const envModel = import.meta.env.VITE_GEMINI_MODEL || "gemini-2.5-flash";
   const localModel = localStorage.getItem(STORAGE_KEY_MODEL);
   if (localModel && localModel.trim()) return localModel.trim();
   return envModel;
@@ -53,7 +59,11 @@ You have two core capabilities:
      * Admins: Monitor certificate issues, platform activity, user roles, flags, and broadcast announcements.
    - Verification Process: Certificates are cryptographically indexed, matching institutional signatures or hashes against verified records.
 
-2. GENERAL INTELLIGENCE:
+2. CONTINUOUS SELF-LEARNING AGENT:
+   - You actively remember facts, user preferences, instructions, and feedback taught to you during conversations.
+   - When a user corrects you or tells you specific details, acknowledge that you have learned and will retain that information.
+
+3. GENERAL INTELLIGENCE:
    - You can answer ANY question asked to you across any domain: coding, web development, science, mathematics, literature, career advice, interview preparation, tech trends, philosophy, and everyday inquiries.
    - Be clear, helpful, polite, and articulate.
    - Format your responses with clear Markdown headings, bullet points, and code blocks with syntax highlighting when relevant.
@@ -61,6 +71,12 @@ You have two core capabilities:
 
 // Built-in intelligent fallback for instant responses when API key is not yet set
 function getSmartFallbackResponse(lastQuery: string): string {
+  // First check if any learned memory directly answers the question!
+  const learnedMatch = findLearnedFallbackMatch(lastQuery);
+  if (learnedMatch) {
+    return learnedMatch;
+  }
+
   const query = lastQuery.toLowerCase();
 
   if (query.includes("founder") || query.includes("who created") || query.includes("who built") || query.includes("who made") || query.includes("who founded") || query.includes("tanmay")) {
@@ -91,11 +107,11 @@ function getSmartFallbackResponse(lastQuery: string): string {
     return `Hello! How can I help you today? Feel free to ask about certificate verification, resume generation, EduProof features, or any general question in tech, science, or career advice!`;
   }
 
-  return `I can help you with that! EduProof is built to streamline credential verification and academic integrity.\n\nIf you have questions about:\n- **Verifying credentials** or checking certificate status\n- **Generating ATS-friendly CVs** with verified badges\n- **Candidate & recruiter workflows**\n- **Technical questions** about coding, science, or careers\n\nFeel free to ask, or configure your Gemini API key in **Settings (⚙️)** for unrestricted live AI capabilities!`;
+  return `I can help you with that! EduProof is built to streamline credential verification and academic integrity.\n\nIf you have questions about:\n- **Verifying credentials** or checking certificate status\n- **Generating ATS-friendly CVs** with verified badges\n- **Candidate & recruiter workflows**\n- **Technical questions** about coding, science, or careers\n\nFeel free to ask, or teach me new facts using the **Teach Assistant (🧠)** button!`;
 }
 
 /**
- * Send a chat message to Google Gemini API
+ * Send a chat message to Google Gemini API with continuous learning context
  */
 export async function sendGeminiChatMessage(
   messages: ChatMessage[],
@@ -103,6 +119,11 @@ export async function sendGeminiChatMessage(
 ): Promise<string> {
   const apiKey = getGeminiApiKey();
   const lastUserMessage = [...messages].reverse().find(m => m.role === "user")?.content || "";
+
+  // Auto-learn in real time from what the user said
+  if (lastUserMessage) {
+    autoLearnFromChat(lastUserMessage);
+  }
 
   // If no API key is provided, use smart internal knowledge base seamlessly
   if (!apiKey) {
@@ -125,17 +146,18 @@ export async function sendGeminiChatMessage(
     throw new Error("No messages provided to send.");
   }
 
-  // Model fallback chain: try user selected model (gemini-3.5-flash) first,
-  // then gracefully cascade to gemini-2.5-flash or flash-latest if Google's API returns 503 / high demand
+  // Model fallback chain
   const modelsToTry = [
     model,
-    "gemini-3.5-flash",
     "gemini-2.5-flash",
+    "gemini-3.5-flash",
     "gemini-flash-latest",
     "gemini-2.5-pro",
   ].filter((v, i, a) => v && a.indexOf(v) === i);
 
   let lastError: Error | null = null;
+  const learnedContext = buildLearnedMemoryContext(lastUserMessage);
+  const fullSystemInstruction = `${SYSTEM_INSTRUCTION}\n\n${learnedContext}`;
 
   for (const currentModel of modelsToTry) {
     try {
@@ -144,7 +166,7 @@ export async function sendGeminiChatMessage(
       const payload = {
         contents,
         systemInstruction: {
-          parts: [{ text: SYSTEM_INSTRUCTION }],
+          parts: [{ text: fullSystemInstruction }],
         },
         generationConfig: {
           temperature: 0.7,
@@ -194,14 +216,15 @@ export async function sendGeminiChatMessage(
       }
 
       return candidate.content.parts.map((p: { text?: string }) => p.text || "").join("");
-    } catch (err: any) {
-      console.warn(`Error connecting to ${currentModel}:`, err.message);
-      lastError = err;
-      if (err.name === "AbortError") {
+    } catch (err: unknown) {
+      const errorObj = err instanceof Error ? err : new Error(String(err));
+      console.warn(`Error connecting to ${currentModel}:`, errorObj.message);
+      lastError = errorObj;
+      if (errorObj.name === "AbortError") {
         console.warn(`Model ${currentModel} timed out. Trying fallback model...`);
       }
-      if (err.message?.toLowerCase().includes("api key not valid")) {
-        throw err;
+      if (errorObj.message?.toLowerCase().includes("api key not valid")) {
+        throw errorObj;
       }
     }
   }

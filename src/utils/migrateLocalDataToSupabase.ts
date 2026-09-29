@@ -44,7 +44,9 @@ export async function transferLocalDataToSupabase(): Promise<MigrationSummary[]>
     try {
       const raw = localStorage.getItem("eduproof_firestore_issued_certificates");
       if (raw) localIssued = JSON.parse(raw);
-    } catch {}
+    } catch (_err) {
+      // Local storage not populated or corrupt
+    }
 
     const allIssued = [...SEED_ISSUED_CERTIFICATES];
     for (const item of localIssued) {

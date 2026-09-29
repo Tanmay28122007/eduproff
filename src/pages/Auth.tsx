@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,20 +29,20 @@ const Auth = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const redirectByRole = (roleStr: string | null) => {
+  const redirectByRole = useCallback((roleStr: string | null) => {
     switch (roleStr) {
       case "candidate": navigate("/student"); break;
       case "recruiter": navigate("/recruiter"); break;
       case "admin": navigate("/admin"); break;
       default: navigate("/student"); break;
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     if (!authLoading && user) {
       redirectByRole(role);
     }
-  }, [user, role, authLoading]);
+  }, [user, role, authLoading, redirectByRole]);
 
   const getDisplayName = (): string => {
     switch (selectedRole) {
@@ -138,16 +138,16 @@ const Auth = () => {
     <Layout>
       <section className="min-h-[80vh] flex items-center py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-[400px] mx-auto bg-card border border-border/70 rounded-2xl p-6 shadow-md">
+          <div className="max-w-[440px] mx-auto bg-card border border-border/70 rounded-2xl p-7 md:p-8 shadow-card">
             {/* Logo */}
-            <div className="text-center mb-5">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-2.5 border border-primary/20 shadow-xs">
+            <div className="text-center mb-6">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3 border border-primary/20 shadow-xs">
                 <Shield className="w-5 h-5 text-primary" />
               </div>
-              <h1 className="font-display text-xl font-bold text-foreground tracking-tight mb-0.5">
+              <h1 className="font-display text-2xl font-bold text-foreground tracking-tight mb-1">
                 {mode === "signup" ? "Create Account" : "Welcome Back"}
               </h1>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {mode === "signup"
                   ? "Join EduProof to get started"
                   : "Sign in to your EduProof account"}
@@ -155,10 +155,10 @@ const Auth = () => {
             </div>
 
             {/* Main Tabs: Log In / Sign Up */}
-            <div className="flex mb-4 bg-secondary/80 rounded-xl p-1 border border-border/50">
+            <div className="flex mb-5 bg-secondary/80 rounded-xl p-1.5 border border-border/50">
               <button
                 onClick={() => { setMode("login"); setError(null); }}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
                   isLogin
                     ? "bg-card text-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
@@ -168,7 +168,7 @@ const Auth = () => {
               </button>
               <button
                 onClick={() => { setMode("signup"); setError(null); }}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
                   mode === "signup"
                     ? "bg-card text-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
@@ -180,14 +180,14 @@ const Auth = () => {
 
             {/* Error Message */}
             {error && (
-              <div className="mb-4 p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-xs font-medium text-destructive">
+              <div className="mb-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-xs font-medium text-destructive">
                 {error}
               </div>
             )}
 
             {/* Role Selection Cards (signup only) */}
             {mode === "signup" && (
-              <div className="grid grid-cols-2 gap-2.5 mb-4">
+              <div className="grid grid-cols-2 gap-3 mb-5">
                 {roles.map((r) => {
                   const Icon = r.icon;
                   const isSelected = selectedRole === r.value;
@@ -196,16 +196,16 @@ const Auth = () => {
                       key={r.value}
                       type="button"
                       onClick={() => setSelectedRole(r.value)}
-                      className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all text-center ${
+                      className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all text-center ${
                         isSelected
                           ? "border-primary bg-primary/10 shadow-xs"
                           : "border-border/70 hover:border-primary/40 bg-secondary/20 hover:bg-secondary/40"
                       }`}
                     >
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-1.5 ${
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-1.5 ${
                         isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                       }`}>
-                        <Icon className="w-4 h-4" />
+                        <Icon className="w-4.5 h-4.5" />
                       </div>
                       <span className={`text-xs font-semibold leading-tight ${
                         isSelected ? "text-primary" : "text-foreground"
@@ -222,11 +222,11 @@ const Auth = () => {
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Dynamic signup fields */}
               {mode === "signup" && selectedRole === "candidate" && (
-                <div className="space-y-1">
-                  <Label htmlFor="fullName" className="text-xs font-medium text-foreground">
+                <div className="space-y-1.5">
+                  <Label htmlFor="fullName" className="text-sm font-medium text-foreground">
                     Full Name
                   </Label>
                   <Input 
@@ -235,15 +235,15 @@ const Auth = () => {
                     placeholder="Enter your full name" 
                     value={fullName} 
                     onChange={(e) => setFullName(e.target.value)} 
-                    className="h-9 text-xs px-3 rounded-lg bg-secondary/30 border-border/80 focus:border-primary placeholder:text-xs"
+                    className="h-11 text-sm px-3.5 rounded-xl bg-secondary/30 border-border/80 focus:border-primary placeholder:text-sm"
                     required 
                   />
                 </div>
               )}
 
               {mode === "signup" && selectedRole === "recruiter" && (
-                <div className="space-y-1">
-                  <Label htmlFor="companyName" className="text-xs font-medium text-foreground">
+                <div className="space-y-1.5">
+                  <Label htmlFor="companyName" className="text-sm font-medium text-foreground">
                     Company Name
                   </Label>
                   <Input 
@@ -252,14 +252,14 @@ const Auth = () => {
                     placeholder="Enter company name" 
                     value={companyName} 
                     onChange={(e) => setCompanyName(e.target.value)} 
-                    className="h-9 text-xs px-3 rounded-lg bg-secondary/30 border-border/80 focus:border-primary placeholder:text-xs"
+                    className="h-11 text-sm px-3.5 rounded-xl bg-secondary/30 border-border/80 focus:border-primary placeholder:text-sm"
                     required 
                   />
                 </div>
               )}
 
-              <div className="space-y-1">
-                <Label htmlFor="email" className="text-xs font-medium text-foreground">
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-sm font-medium text-foreground">
                   Email
                 </Label>
                 <Input 
@@ -268,13 +268,13 @@ const Auth = () => {
                   placeholder="you@example.com" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
-                  className="h-9 text-xs px-3 rounded-lg bg-secondary/30 border-border/80 focus:border-primary placeholder:text-xs"
+                  className="h-11 text-sm px-3.5 rounded-xl bg-secondary/30 border-border/80 focus:border-primary placeholder:text-sm"
                   required 
                 />
               </div>
 
-              <div className="space-y-1">
-                <Label htmlFor="password" className="text-xs font-medium text-foreground">
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-sm font-medium text-foreground">
                   Password
                 </Label>
                 <div className="relative">
@@ -284,29 +284,29 @@ const Auth = () => {
                     placeholder="Enter your password" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
-                    className="h-9 text-xs px-3 pr-9 rounded-lg bg-secondary/30 border-border/80 focus:border-primary placeholder:text-xs"
+                    className="h-11 text-sm px-3.5 pr-10 rounded-xl bg-secondary/30 border-border/80 focus:border-primary placeholder:text-sm"
                     required 
                     minLength={6} 
                   />
                   <button 
                     type="button" 
                     onClick={() => setShowPassword(!showPassword)} 
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 transition-colors"
                   >
-                    {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
               <Button 
                 type="submit" 
-                size="sm" 
-                className="w-full h-9.5 text-xs font-semibold rounded-lg mt-2 shadow-xs hover:shadow transition-all" 
+                size="lg" 
+                className="w-full h-11 md:h-12 text-sm md:text-base font-semibold rounded-xl mt-3 shadow-md hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all" 
                 disabled={formLoading}
               >
                 {formLoading ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     {mode === "login" ? "Signing In..." : "Creating Account..."}
                   </>
                 ) : (

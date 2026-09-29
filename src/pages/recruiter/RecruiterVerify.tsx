@@ -43,7 +43,7 @@ const RecruiterVerify = () => {
       }
 
       const title = issuedData?.course_name || "Academic & Professional Achievement";
-      const issuer = issuedData?.student_name || "Stanford Online / EduProof Network";
+      const issuer = issuedData?.institution_id || "Stanford Online / EduProof Network";
       const studentName = issuedData?.student_name || "Candidate Recipient";
       const issueDate = issuedData?.issue_date || new Date().toISOString().split("T")[0];
 
